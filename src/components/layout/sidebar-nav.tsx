@@ -14,11 +14,9 @@ import {
   Settings,
   BookOpenCheck,
   LifeBuoy,
-  LogOut,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Separator } from '../ui/separator';
 
 export function SidebarNav() {
@@ -73,30 +71,7 @@ export function SidebarNav() {
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton tooltip={{ children: 'Logout' }} asChild>
-              <Link href="#">
-                <LogOut />
-                <span>Logout</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
         </SidebarMenu>
-        <Separator className="my-2 bg-sidebar-border" />
-        <div className="flex items-center gap-3 rounded-md px-2 py-3 transition-colors">
-            <Avatar className="size-8">
-                <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                <AvatarFallback>CN</AvatarFallback>
-            </Avatar>
-            <div className="overflow-hidden">
-                <p className="truncate text-sm font-medium text-sidebar-foreground">
-                    Eduflow User
-                </p>
-                <p className="truncate text-xs text-sidebar-foreground/70">
-                    user@eduflow.com
-                </p>
-            </div>
-        </div>
       </SidebarFooter>
     </Sidebar>
   );
