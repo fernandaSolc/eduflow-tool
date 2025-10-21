@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "course-1",
+      "description": "Abstract programming art",
+      "imageUrl": "https://images.unsplash.com/photo-1555680510-34daedadbdb1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxhYnN0cmFjdCUyMGNvZGV8ZW58MHx8fHwxNzYxMDA4ODcyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract code"
+    },
+    {
+      "id": "course-2",
+      "description": "Futuristic user interface design",
+      "imageUrl": "https://images.unsplash.com/photo-1720962158812-d16549f1e5a3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxmdXR1cmlzdGljJTIwdWl8ZW58MHx8fHwxNzYwOTg4ODIzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "futuristic ui"
+    },
+    {
+      "id": "course-3",
+      "description": "Data visualization graph",
+      "imageUrl": "https://images.unsplash.com/photo-1584291527908-033f4d6542c8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxkYXRhJTIwdmlzdWFsaXphdGlvbnxlbnwwfHx8fDE3NjA5Nzk2NjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "data visualization"
+    },
+    {
+      "id": "course-4",
+      "description": "Cloud computing infrastructure",
+      "imageUrl": "https://images.unsplash.com/photo-1629058800859-07f3d07f5fce?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjbG91ZCUyMGluZnJhc3RydWN0dXJlfGVufDB8fHx8MTc2MDk4MzcwMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cloud infrastructure"
+    }
+  ]
 }
