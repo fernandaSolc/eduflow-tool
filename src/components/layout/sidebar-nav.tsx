@@ -2,7 +2,6 @@
 
 import {
   Sidebar,
-  SidebarContent,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
@@ -29,9 +28,6 @@ export function SidebarNav() {
             </span>
         </div>
       </SidebarHeader>
-      <SidebarContent className="p-2">
-        {/* Main navigation has been moved to PageNav */}
-      </SidebarContent>
       <SidebarFooter className="p-2">
          <Separator className="my-2 bg-sidebar-border" />
          <SidebarMenu>
