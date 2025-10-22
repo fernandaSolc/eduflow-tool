@@ -1,17 +1,10 @@
 import type { Course } from './definitions';
-import { PlaceHolderImages } from './placeholder-images';
-
-const findImage = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageUrl || 'https://picsum.photos/seed/placeholder/600/400';
-const findImageHint = (id: string) => PlaceHolderImages.find(img => img.id === id)?.imageHint;
-
 
 export const courses: Course[] = [
   {
     id: '1',
     title: 'Advanced Frontend Development',
     description: 'Master modern frontend technologies like React, Next.js, and advanced CSS.',
-    imageUrl: findImage('course-1'),
-    imageHint: findImageHint('course-1'),
     chapters: [
       {
         id: '1-1',
@@ -71,24 +64,18 @@ You can create a store with a simple function call.
     id: '2',
     title: 'UI/UX Design Fundamentals',
     description: 'Learn the principles of user interface and user experience design to create intuitive and beautiful products.',
-    imageUrl: findImage('course-2'),
-    imageHint: findImageHint('course-2'),
     chapters: [],
   },
   {
     id: '3',
     title: 'Data Science with Python',
     description: 'Dive into data analysis, visualization, and machine learning using Python with libraries like Pandas, and Scikit-learn.',
-    imageUrl: findImage('course-3'),
-    imageHint: findImageHint('course-3'),
     chapters: [],
   },
   {
     id: '4',
     title: 'DevOps and Cloud Infrastructure',
     description: 'Understand the practices of DevOps and learn to manage cloud infrastructure on AWS and Google Cloud.',
-    imageUrl: findImage('course-4'),
-    imageHint: findImageHint('course-4'),
     chapters: [],
   },
 ];

@@ -2,8 +2,6 @@ export type Course = {
   id: string;
   title: string;
   description: string;
-  imageUrl: string;
-  imageHint?: string;
   chapters: Chapter[];
 };
 
