@@ -13,6 +13,23 @@ import {
   IntelligentChapterEnrichmentInput,
 } from '@/ai/flows/intelligent-chapter-enrichment';
 import { revalidatePath } from 'next/cache';
+import { backendService } from './services';
+import type { Course } from './definitions';
+
+export async function createCourseAction(
+  values: Omit<Course, 'id' | 'createdAt' | 'updatedAt' | 'status'>
+) {
+  try {
+    const { data: newCourse } = await backendService.createCourse(values);
+    revalidatePath('/');
+    return { success: true, data: newCourse };
+  } catch (error) {
+    console.error('Error creating course:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to create course.';
+    return { success: false, error: errorMessage };
+  }
+}
+
 
 export async function generateChapterAction(
   courseId: string,

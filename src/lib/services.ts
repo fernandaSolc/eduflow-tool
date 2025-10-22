@@ -1,0 +1,147 @@
+import { API_CONFIG } from '@/lib/api-config';
+import type { Course } from './definitions';
+
+export interface CourseFilters {
+  page?: number;
+  limit?: number;
+  subject?: string;
+  educationalLevel?: string;
+  status?: string;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface PaginatedResponse<T> {
+  success: boolean;
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export class BackendService {
+  private baseURL: string;
+  private apiKey: string;
+
+  constructor() {
+    this.baseURL = API_CONFIG.BACKEND.BASE_URL;
+    this.apiKey = API_CONFIG.BACKEND.API_KEY;
+  }
+
+  private async makeRequest<T>(
+    endpoint: string,
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
+    data?: any,
+    options: RequestInit = {}
+  ): Promise<T> {
+    const url = `${this.baseURL}${endpoint}`;
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      'x-api-key': this.apiKey,
+    };
+
+    const config: RequestInit = {
+      ...options,
+      method,
+      headers,
+    };
+
+    if (data && method !== 'GET') {
+      config.body = JSON.stringify(data);
+    }
+    
+    const response = await fetch(url, config);
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error(`Backend error: ${response.status} ${response.statusText}`, errorBody);
+      throw new Error(`Backend error: ${response.status} ${response.statusText}. ${errorBody}`);
+    }
+
+    // Handle cases where response might be empty
+    const text = await response.text();
+    try {
+        return JSON.parse(text);
+    } catch (e) {
+        return text as any;
+    }
+  }
+
+  async checkHealth(): Promise<{ status: string; timestamp: string }> {
+    return this.makeRequest(API_CONFIG.BACKEND.ENDPOINTS.HEALTH);
+  }
+
+  async getCourses(filters?: CourseFilters): Promise<PaginatedResponse<Course>> {
+    const params = new URLSearchParams();
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          params.append(key, value.toString());
+        }
+      });
+    }
+
+    const queryString = params.toString();
+    const endpoint = queryString ? `${API_CONFIG.BACKEND.ENDPOINTS.COURSES}?${queryString}` : API_CONFIG.BACKEND.ENDPOINTS.COURSES;
+    
+    return this.makeRequest<PaginatedResponse<Course>>(endpoint, 'GET', null, { cache: 'no-store'});
+  }
+
+  async getCourseById(courseId: string): Promise<{ success: boolean; data: Course }> {
+    return this.makeRequest<{ success: boolean; data: Course }>(
+      `${API_CONFIG.BACKEND.ENDPOINTS.COURSES}/${courseId}`, 'GET', null, { next: { revalidate: 0 } }
+    );
+  }
+
+  async createCourse(courseData: Omit<Course, 'id' | 'createdAt' | 'updatedAt' | 'status'>): Promise<{ success: boolean; data: Course }> {
+    return this.makeRequest<{ success: boolean; data: Course }>(
+      API_CONFIG.BACKEND.ENDPOINTS.COURSES,
+      'POST',
+      courseData
+    );
+  }
+
+  async updateCourse(courseId: string, courseData: Partial<Course>): Promise<{ success: boolean; data: Course }> {
+    return this.makeRequest<{ success: boolean; data: Course }>(
+      `${API_CONFIG.BACKEND.ENDPOINTS.COURSES}/${courseId}`,
+      'PUT',
+      courseData
+    );
+  }
+
+  async getCourseChapters(courseId: string): Promise<{ success: boolean; data: any[] }> {
+    return this.makeRequest<{ success: boolean; data: any[] }>(
+      `${API_CONFIG.BACKEND.ENDPOINTS.COURSES}/${courseId}/chapters`
+    );
+  }
+
+  async getChapterById(chapterId: string): Promise<{ success: boolean; data: any }> {
+    return this.makeRequest<{ success: boolean; data: any }>(
+      `${API_CONFIG.BACKEND.ENDPOINTS.CHAPTERS}/${chapterId}`
+    );
+  }
+
+  async getChapterSections(chapterId: string): Promise<{ success: boolean; data: any[] }> {
+    return this.makeRequest<{ success: boolean; data: any[] }>(
+      `${API_CONFIG.BACKEND.ENDPOINTS.CHAPTERS}/${chapterId}/sections`
+    );
+  }
+
+  async getChapterActivities(chapterId: string): Promise<{ success: boolean; data: any[] }> {
+    return this.makeRequest<{ success: boolean; data: any[] }>(
+      `${API_CONFIG.BACKEND.ENDPOINTS.CHAPTERS}/${chapterId}/activities`
+    );
+  }
+
+  async getChapterAssessments(chapterId: string): Promise<{ success: boolean; data: any[] }> {
+    return this.makeRequest<{ success: boolean; data: any[] }>(
+      `${API_CONFIG.BACKEND.ENDPOINTS.CHAPTERS}/${chapterId}/assessments`
+    );
+  }
+}
+
+export const backendService = new BackendService();

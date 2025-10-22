@@ -1,12 +1,28 @@
 'use client';
 
-import { courses } from '@/lib/data';
+import { getCourses } from '@/lib/data';
 import { CourseCard } from '@/components/courses/course-card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Sparkles, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import type { Course } from '@/lib/definitions';
 
 export default function Home() {
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadCourses() {
+      setLoading(true);
+      const fetchedCourses = await getCourses();
+      setCourses(fetchedCourses);
+      setLoading(false);
+    }
+    loadCourses();
+  }, []);
+
+
   return (
     <div className="flex flex-col gap-12 sm:gap-16 lg:gap-20">
       <section className="text-center">
@@ -18,7 +34,7 @@ export default function Home() {
         </p>
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-x-6">
           <Button asChild size="lg">
-            <Link href="/courses">
+            <Link href="/courses/new">
               Começar a Criar
               <Sparkles className="ml-2 h-5 w-5" />
             </Link>
@@ -48,11 +64,17 @@ export default function Home() {
                 </Link>
             </Button>
         </div>
-        <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {courses.map((course) => (
-            <CourseCard key={course.id} course={course} />
-          ))}
-        </div>
+        {loading ? (
+           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+             <p className="text-muted-foreground">Carregando cursos...</p>
+           </div>
+        ) : (
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {courses.map((course) => (
+              <CourseCard key={course.id} course={course} />
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

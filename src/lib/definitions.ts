@@ -2,7 +2,15 @@ export type Course = {
   id: string;
   title: string;
   description: string;
-  chapters: Chapter[];
+  subject: string;
+  educationalLevel: string;
+  targetAudience: string;
+  template: string;
+  philosophy: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  chapters?: Chapter[];
 };
 
 export type Chapter = {

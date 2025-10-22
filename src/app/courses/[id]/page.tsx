@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { getCourseById, addChapterToCourse, updateChapterContent } from '@/lib/data';
 import type { Course, Chapter } from '@/lib/definitions';
 import { notFound } from 'next/navigation';
@@ -9,40 +9,66 @@ import { ChapterContent } from '@/components/chapters/chapter-content';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 
 export default function CoursePage({ params }: { params: { id: string } }) {
-  const initialCourse = useMemo(() => getCourseById(params.id), [params.id]);
+  const [course, setCourse] = useState<Course | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadCourse() {
+      setLoading(true);
+      const fetchedCourse = await getCourseById(params.id);
+      if (!fetchedCourse) {
+        notFound();
+      } else {
+        setCourse(fetchedCourse);
+      }
+      setLoading(false);
+    }
+    loadCourse();
+  }, [params.id]);
   
-  if (!initialCourse) {
-    notFound();
-  }
-  
-  // Use state to manage course data to reflect updates from AI actions
-  const [course, setCourse] = useState<Course>(initialCourse);
   const [activeChapterId, setActiveChapterId] = useLocalStorage<string | null>(
     `activeChapter_${params.id}`,
-    course.chapters[0]?.id ?? null
+    null
   );
 
+  useEffect(() => {
+    if (course && course.chapters && course.chapters.length > 0 && !activeChapterId) {
+      setActiveChapterId(course.chapters[0].id);
+    }
+  }, [course, activeChapterId, setActiveChapterId]);
+
+
   const activeChapter = useMemo(
-    () => course.chapters.find((c) => c.id === activeChapterId),
-    [course.chapters, activeChapterId]
+    () => course?.chapters?.find((c) => c.id === activeChapterId),
+    [course?.chapters, activeChapterId]
   );
   
   const handleChapterSelect = (chapterId: string) => {
     setActiveChapterId(chapterId);
   };
 
-  const handleAddChapter = (newChapter: Chapter) => {
-    addChapterToCourse(course.id, newChapter); // This mutates the mock data
-    const updatedCourse = getCourseById(course.id)!; // Re-fetch to get the updated data
-    setCourse({ ...updatedCourse });
+  const handleAddChapter = async (newChapter: Chapter) => {
+    if (!course) return;
+    await addChapterToCourse(course.id, newChapter);
+    const updatedCourse = await getCourseById(course.id);
+    if(updatedCourse) {
+      setCourse({ ...updatedCourse });
+    }
     setActiveChapterId(newChapter.id);
   };
 
-  const handleUpdateChapter = (chapterId: string, newContent: string) => {
-    updateChapterContent(course.id, chapterId, newContent); // Mutates mock data
-    const updatedCourse = getCourseById(course.id)!;
-    setCourse({ ...updatedCourse });
+  const handleUpdateChapter = async (chapterId: string, newContent: string) => {
+    if (!course) return;
+    await updateChapterContent(course.id, chapterId, newContent); 
+    const updatedCourse = await getCourseById(course.id);
+    if(updatedCourse) {
+      setCourse({ ...updatedCourse });
+    }
   };
+
+  if (loading || !course) {
+    return <div className="text-center p-8">Carregando curso...</div>;
+  }
 
   return (
     <div className="flex h-[calc(100vh-8.5rem)] -m-4 sm:-m-6 lg:-m-8">
