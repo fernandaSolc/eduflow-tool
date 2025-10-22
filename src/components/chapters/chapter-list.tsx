@@ -28,7 +28,7 @@ export function ChapterList({
       <header className="flex items-center justify-between border-b border-border p-4">
         <h2 className="font-headline text-lg font-semibold truncate pr-4">{course.title}</h2>
         <NewChapterForm
-          courseId={course.id}
+          course={course}
           onChapterCreated={onAddChapter}
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
@@ -41,7 +41,7 @@ export function ChapterList({
       </header>
       <ScrollArea className="flex-1">
         <nav className="p-2">
-          {course.chapters.length > 0 ? (
+          {course.chapters && course.chapters.length > 0 ? (
             <ul className="space-y-1">
               {course.chapters.map((chapter) => (
                 <li key={chapter.id}>

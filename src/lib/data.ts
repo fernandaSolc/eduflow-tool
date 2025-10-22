@@ -1,83 +1,35 @@
 import type { Course, Chapter } from './definitions';
 import { backendService } from './services';
 
-const MOCK_CHAPTERS: Chapter[] = [
-  {
-    id: 'ch-1',
-    title: 'Chapter 1: Introduction to Entrepreneurship',
-    content: '<p>This is the introductory content about entrepreneurship. We will cover the fundamental concepts and the importance of the entrepreneurial mindset.</p><p>We will explore how to identify opportunities and turn ideas into viable businesses. The chapter includes practical examples and case studies.</p><h2>Main Topics:</h2><ul><li>What is entrepreneurship?</li><li>The entrepreneur profile</li><li>Innovation and Creativity</li></ul>',
-    sections: [],
-    suggestions: [],
-  },
-  {
-    id: 'ch-2',
-    title: 'Chapter 2: Business Plan',
-    content: '<h2>Building Your Business Plan</h2><p>In this chapter, you will learn how to structure a solid business plan, essential for the success of any venture. We will cover everything from market analysis to financial projections.</p><p>A good business plan serves as a roadmap for your company and is a vital tool for attracting investors.</p>',
-    sections: [],
-    suggestions: [],
-  }
-];
-
-
-const MOCK_COURSES: Course[] = [
-  {
-    id: '1',
-    title: 'Entrepreneurship in Maranhão',
-    description: 'A complete course on how to start and manage a successful business in the state of Maranhão, exploring local opportunities.',
-    subject: 'Entrepreneurship',
-    educationalLevel: 'High School',
-    targetAudience: 'Students and new entrepreneurs',
-    template: 'empreendedorismo_maranhao',
-    philosophy: 'Practical education focused on the local market.',
-    status: 'active',
-    createdAt: '2023-10-26T10:00:00Z',
-    updatedAt: '2023-10-26T10:00:00Z',
-    chapters: MOCK_CHAPTERS,
-  },
-  {
-    id: '2',
-    title: 'Interface Design with Figma',
-    description: 'Learn to create modern and functional user interfaces using the most popular design tool on the market, Figma.',
-    subject: 'UI/UX Design',
-    educationalLevel: 'Free',
-    targetAudience: 'Designers and developers',
-    template: 'design_figma',
-    philosophy: 'Learning by doing, with practical projects.',
-    status: 'active',
-    createdAt: '2023-10-25T11:00:00Z',
-    updatedAt: '2023-10-25T11:00:00Z',
-    chapters: [],
-  },
-];
-
 
 export const getCourses = async (): Promise<Course[]> => {
-    // try {
-    //     const response = await backendService.getCourses();
-    //     return response.data;
-    // } catch (error) {
-    //     console.error("Failed to fetch courses:", error);
-    //     return [];
-    // }
-    console.log("Using mock courses");
-    return Promise.resolve(MOCK_COURSES);
+    try {
+        const response = await backendService.getCourses();
+        return response.data;
+    } catch (error) {
+        console.error("Failed to fetch courses, returning empty array:", error);
+        return [];
+    }
 }
 
 export const getCourseById = async (id: string): Promise<Course | undefined> => {
     if (!id) return undefined;
-    // try {
-    //     const response = await backendService.getCourseById(id);
-    //     return response.data;
-    // } catch (error) {
-    //     console.error(`Failed to fetch course ${id}:`, error);
-    //     return undefined;
-    // }
-    console.log(`Using mock course for id: ${id}`);
-    const course = MOCK_COURSES.find(c => c.id === id);
-    return Promise.resolve(course);
+    try {
+        const response = await backendService.getCourseById(id);
+        const course = response.data;
+        
+        // Fetch chapters separately and attach them to the course
+        const chaptersResponse = await backendService.getCourseChapters(id);
+        course.chapters = chaptersResponse.data;
+
+        return course;
+    } catch (error) {
+        console.error(`Failed to fetch course ${id}:`, error);
+        return undefined;
+    }
 }
 
-export async function addChapterToCourse(courseId: string, chapter: Course['chapters'][0]) {
+export async function addChapterToCourse(courseId: string, chapter: Chapter) {
     const course = await getCourseById(courseId);
     if (course) {
         if (!course.chapters) {
@@ -100,4 +52,14 @@ export async function updateChapterContent(courseId: string, chapterId: string, 
             chapter.content = newContent;
         }
     }
+}
+
+export async function updateChapter(courseId: string, updatedChapter: Chapter) {
+  const course = await getCourseById(courseId);
+  if (course && course.chapters) {
+    const chapterIndex = course.chapters.findIndex(c => c.id === updatedChapter.id);
+    if (chapterIndex !== -1) {
+      course.chapters[chapterIndex] = updatedChapter;
+    }
+  }
 }

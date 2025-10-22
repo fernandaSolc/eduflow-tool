@@ -27,13 +27,11 @@ const formSchema = z.object({
 
 type EnrichChapterFormProps = {
   chapter: Chapter;
-  courseId: string;
-  onUpdateChapter: (chapterId: string, newContent: string) => void;
+  onUpdateChapter: (chapterId: string, updatedChapter: Chapter) => void;
 };
 
 export function EnrichChapterForm({
   chapter,
-  courseId,
   onUpdateChapter,
 }: EnrichChapterFormProps) {
   const { toast } = useToast();
@@ -48,19 +46,16 @@ export function EnrichChapterForm({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
-    const result = await enrichChapterAction(courseId, chapter.id, {
-      existingContent: chapter.content,
+    const result = await enrichChapterAction(chapter, {
       userQuery: values.userQuery,
     });
     setIsSubmitting(false);
 
     if (result.success && result.data) {
-      onUpdateChapter(result.data.id, result.data.content);
+      onUpdateChapter(result.data.id, result.data);
       toast({
         title: 'Capítulo Enriquecido!',
-        description: `A assistência da IA foi ${
-          result.data.aiUsed ? 'usada' : 'não usada'
-        } para este enriquecimento.`,
+        description: `A assistência da IA foi usada para este enriquecimento.`,
       });
       form.reset();
     } else {

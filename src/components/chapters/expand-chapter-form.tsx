@@ -34,23 +34,13 @@ const formSchema = z.object({
   additionalDetails: z.string().optional(),
 });
 
-const continuationTypes = [
-  'Mais exemplos',
-  'Explicação mais profunda',
-  'Tópicos relacionados',
-  'Resumir os pontos chave',
-  'Criar um quiz',
-];
-
 type ExpandChapterFormProps = {
   chapter: Chapter;
-  courseId: string;
-  onUpdateChapter: (chapterId: string, newContent: string) => void;
+  onUpdateChapter: (chapterId: string, updatedChapter: Chapter) => void;
 };
 
 export function ExpandChapterForm({
   chapter,
-  courseId,
   onUpdateChapter,
 }: ExpandChapterFormProps) {
   const { toast } = useToast();
@@ -59,25 +49,29 @@ export function ExpandChapterForm({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      continuationType: chapter.availableContinueTypes?.[0] || '',
       additionalDetails: '',
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
-    const result = await expandChapterAction(courseId, chapter.id, {
-      existingContent: chapter.content,
-      ...values,
+    const result = await expandChapterAction(chapter.id, {
+      continuationType: values.continuationType,
+      additionalDetails: values.additionalDetails,
     });
     setIsSubmitting(false);
 
     if (result.success && result.data) {
-      onUpdateChapter(result.data.id, result.data.content);
+      onUpdateChapter(result.data.id, result.data);
       toast({
         title: 'Capítulo Expandido!',
         description: 'Seu capítulo foi atualizado com novo conteúdo.',
       });
-      form.reset();
+      form.reset({
+        continuationType: result.data.availableContinueTypes?.[0] || '',
+        additionalDetails: '',
+      });
     } else {
       toast({
         variant: 'destructive',
@@ -100,6 +94,7 @@ export function ExpandChapterForm({
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  disabled={!chapter.canContinue || chapter.availableContinueTypes.length === 0}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -107,9 +102,12 @@ export function ExpandChapterForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {continuationTypes.map(type => (
+                    {chapter.availableContinueTypes.map(type => (
                       <SelectItem key={type} value={type}>
-                        {type}
+                        {type === 'expand' && 'Expandir Conteúdo'}
+                        {type === 'add_section' && 'Adicionar Seção'}
+                        {type === 'add_activities' && 'Adicionar Atividades'}
+                        {type === 'add_assessments' && 'Adicionar Avaliações'}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -129,6 +127,7 @@ export function ExpandChapterForm({
                     placeholder="Ex: 'Foque nas implicações de performance...'"
                     className="resize-none"
                     {...field}
+                    disabled={!chapter.canContinue}
                   />
                 </FormControl>
                 <FormDescription>
@@ -139,7 +138,7 @@ export function ExpandChapterForm({
             )}
           />
         </div>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting || !chapter.canContinue}>
           {isSubmitting ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (

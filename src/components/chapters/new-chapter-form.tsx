@@ -26,7 +26,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { generateChapterAction } from '@/lib/actions';
-import type { Chapter } from '@/lib/definitions';
+import type { Course, Chapter } from '@/lib/definitions';
 import { useState, type ReactNode } from 'react';
 import { Loader2, Sparkles } from 'lucide-react';
 
@@ -40,7 +40,7 @@ const formSchema = z.object({
 });
 
 type NewChapterFormProps = {
-  courseId: string;
+  course: Course;
   onChapterCreated: (chapter: Chapter) => void;
   children: ReactNode;
   open: boolean;
@@ -48,7 +48,7 @@ type NewChapterFormProps = {
 };
 
 export function NewChapterForm({
-  courseId,
+  course,
   onChapterCreated,
   children,
   open,
@@ -67,7 +67,7 @@ export function NewChapterForm({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
-    const result = await generateChapterAction(courseId, values);
+    const result = await generateChapterAction(course, values);
     setIsSubmitting(false);
 
     if (result.success && result.data) {

@@ -14,17 +14,33 @@ export type Course = {
 };
 
 export type Chapter = {
-  id:string;
+  id: string;
+  courseId: string;
+  chapterNumber: number;
   title: string;
   content: string;
-  sections: Section[];
-  suggestions: Suggestion[];
+  sections: ChapterSection[];
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  metrics: {
+    readabilityScore: number;
+    durationMin: number;
+    coverage: number;
+  };
+  suggestions: string[];
+  canContinue: boolean;
+  availableContinueTypes: string[];
 };
 
-export type Section = {
-    id: string;
-    title: string;
-}
+export type ChapterSection = {
+  id: string;
+  title: string;
+  content: string;
+  type: 'contextualizando' | 'conectando' | 'aprofundando' | 'praticando' | 'recapitulando' | 'exercitando';
+  orderIndex: number;
+};
+
 
 export type Suggestion = {
     id: string;

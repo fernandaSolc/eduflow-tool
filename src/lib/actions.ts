@@ -1,23 +1,12 @@
 'use server';
 
-import {
-  generateNewChapterContent,
-  GenerateNewChapterContentInput,
-} from '@/ai/flows/generate-new-chapter-content';
-import {
-  expandExistingChapterContent,
-  ExpandExistingChapterContentInput,
-} from '@/ai/flows/expand-existing-chapter-content';
-import {
-  intelligentChapterEnrichment,
-  IntelligentChapterEnrichmentInput,
-} from '@/ai/flows/intelligent-chapter-enrichment';
 import { revalidatePath } from 'next/cache';
 import { backendService } from './services';
-import type { Course } from './definitions';
+import { aiService, type CreateChapterRequest } from './ai-service';
+import type { Course, Chapter } from './definitions';
 
 export async function createCourseAction(
-  values: Omit<Course, 'id' | 'createdAt' | 'updatedAt' | 'status'>
+  values: Omit<Course, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'chapters'>
 ) {
   try {
     const { data: newCourse } = await backendService.createCourse(values);
@@ -32,99 +21,87 @@ export async function createCourseAction(
 
 
 export async function generateChapterAction(
-  courseId: string,
+  course: Course,
   values: { title: string; prompt: string }
 ) {
   try {
-    const input: GenerateNewChapterContentInput = {
-      courseTitle: courseId, // Assumindo que courseId é o título para simplificar
-      chapterPrompt: `Título: ${values.title}\nPrompt: ${values.prompt}`,
+    const input: CreateChapterRequest = {
+      courseId: course.id,
+      courseTitle: course.title,
+      courseDescription: course.description,
+      subject: course.subject,
+      educationalLevel: course.educationalLevel,
+      targetAudience: course.targetAudience,
+      template: course.template,
+      philosophy: course.philosophy,
+      chapterNumber: (course.chapters?.length || 0) + 1,
+      additionalContext: `Título do Capítulo: ${values.title}\n\nInstruções: ${values.prompt}`
     };
-    const { chapterContent } = await generateNewChapterContent(input);
 
-    // Em um app real, você salvaria isso no seu banco de dados.
-    // Por agora, vamos apenas registrar e revalidar.
-    console.log('Conteúdo do Capítulo Gerado:', chapterContent);
+    const newChapter = await aiService.createChapter(input);
 
-    revalidatePath(`/courses/${courseId}`);
+    revalidatePath(`/courses/${course.id}`);
     return {
       success: true,
-      data: {
-        id: `ch-${Date.now()}`,
-        title: values.title,
-        content: chapterContent,
-        sections: [],
-        suggestions: [],
-      },
+      data: newChapter,
     };
   } catch (error) {
     console.error('Erro ao gerar capítulo:', error);
-    return { success: false, error: 'Falha ao gerar capítulo.' };
+    const errorMessage = error instanceof Error ? error.message : 'Falha ao gerar capítulo.';
+    return { success: false, error: errorMessage };
   }
 }
 
 export async function expandChapterAction(
-  courseId: string,
   chapterId: string,
   values: {
-    existingContent: string;
     continuationType: string;
-    additionalDetails: string;
+    additionalDetails?: string;
   }
 ) {
   try {
-    const input: ExpandExistingChapterContentInput = {
-      chapterContent: values.existingContent,
-      continuationType: values.continuationType,
-      additionalDetails: values.additionalDetails,
-    };
-    const { expandedContent } = await expandExistingChapterContent(input);
+    const updatedChapter = await aiService.continueChapter(
+        chapterId, 
+        values.continuationType, 
+        values.additionalDetails
+    );
 
-    // Em um app real, você atualizaria isso no seu banco de dados.
-    console.log('Conteúdo do Capítulo Expandido:', expandedContent);
-
-    revalidatePath(`/courses/${courseId}`);
+    revalidatePath(`/courses/${updatedChapter.courseId}`);
     return {
       success: true,
-      data: {
-        id: chapterId,
-        content: expandedContent,
-      },
+      data: updatedChapter,
     };
   } catch (error) {
     console.error('Erro ao expandir capítulo:', error);
-    return { success: false, error: 'Falha ao expandir capítulo.' };
+    const errorMessage = error instanceof Error ? error.message : 'Falha ao expandir capítulo.';
+    return { success: false, error: errorMessage };
   }
 }
 
 export async function enrichChapterAction(
-  courseId: string,
-  chapterId: string,
+  chapter: Chapter,
   values: {
-    existingContent: string;
     userQuery: string;
   }
 ) {
   try {
-    const input: IntelligentChapterEnrichmentInput = {
-      existingContent: values.existingContent,
-      userQuery: values.userQuery,
-    };
-    const { enrichedContent, aiUsed } = await intelligentChapterEnrichment(input);
+    const updatedChapter = await aiService.continueChapter(
+        chapter.id, 
+        'expand', // Ação de enriquecer pode ser mapeada para expandir com um contexto específico
+        `Enriquecer o seguinte conteúdo com base na consulta do usuário: "${values.userQuery}". Conteúdo existente: "${chapter.content}"`
+    );
     
-    console.log('Conteúdo do Capítulo Enriquecido:', enrichedContent, 'IA Usada:', aiUsed);
-    
-    revalidatePath(`/courses/${courseId}`);
+    revalidatePath(`/courses/${updatedChapter.courseId}`);
     return {
       success: true,
       data: {
-        id: chapterId,
-        content: enrichedContent,
-        aiUsed: aiUsed
+        ...updatedChapter,
+        aiUsed: true // Assumindo que o serviço de IA foi usado
       },
     };
   } catch (error) {
     console.error('Erro ao enriquecer capítulo:', error);
-    return { success: false, error: 'Falha ao enriquecer capítulo.' };
+    const errorMessage = error instanceof Error ? error.message : 'Falha ao enriquecer capítulo.';
+    return { success: false, error: errorMessage };
   }
 }

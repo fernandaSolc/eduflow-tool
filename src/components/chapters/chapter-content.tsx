@@ -3,7 +3,6 @@
 import type { Course, Chapter } from '@/lib/definitions';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '../ui/button';
 import { Sparkles, StretchHorizontal, Wand2 } from 'lucide-react';
 import { ExpandChapterForm } from './expand-chapter-form';
 import { EnrichChapterForm } from './enrich-chapter-form';
@@ -11,7 +10,7 @@ import { EnrichChapterForm } from './enrich-chapter-form';
 type ChapterContentProps = {
   course: Course;
   chapter: Chapter | undefined;
-  onUpdateChapter: (chapterId: string, newContent: string) => void;
+  onUpdateChapter: (chapterId: string, updatedChapter: Chapter) => void;
 };
 
 export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterContentProps) {
@@ -54,7 +53,7 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
                 </div>
             </CardHeader>
             <CardContent>
-                <ExpandChapterForm chapter={chapter} courseId={course.id} onUpdateChapter={onUpdateChapter} />
+                <ExpandChapterForm chapter={chapter} onUpdateChapter={onUpdateChapter} />
             </CardContent>
           </Card>
           
@@ -69,7 +68,7 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
                 </div>
             </CardHeader>
             <CardContent>
-                <EnrichChapterForm chapter={chapter} courseId={course.id} onUpdateChapter={onUpdateChapter} />
+                <EnrichChapterForm chapter={chapter} onUpdateChapter={onUpdateChapter} />
             </CardContent>
           </Card>
         </div>

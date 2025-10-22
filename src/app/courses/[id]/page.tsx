@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { getCourseById, addChapterToCourse, updateChapterContent } from '@/lib/data';
+import { getCourseById, addChapterToCourse, updateChapter } from '@/lib/data';
 import type { Course, Chapter } from '@/lib/definitions';
 import { notFound } from 'next/navigation';
 import { ChapterList } from '@/components/chapters/chapter-list';
@@ -12,30 +12,32 @@ export default function CoursePage({ params }: { params: { id: string } }) {
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function loadCourse() {
-      setLoading(true);
-      const fetchedCourse = await getCourseById(params.id);
-      if (!fetchedCourse) {
-        notFound();
-      } else {
-        setCourse(fetchedCourse);
-      }
-      setLoading(false);
-    }
-    loadCourse();
-  }, [params.id]);
-  
   const [activeChapterId, setActiveChapterId] = useLocalStorage<string | null>(
     `activeChapter_${params.id}`,
     null
   );
 
-  useEffect(() => {
-    if (course && course.chapters && course.chapters.length > 0 && !activeChapterId) {
-      setActiveChapterId(course.chapters[0].id);
+  const fetchCourseData = async () => {
+    setLoading(true);
+    const fetchedCourse = await getCourseById(params.id);
+    if (!fetchedCourse) {
+      notFound();
+    } else {
+      setCourse(fetchedCourse);
+       // Auto-select first chapter if none is active
+      if (fetchedCourse.chapters && fetchedCourse.chapters.length > 0 && !activeChapterId) {
+        setActiveChapterId(fetchedCourse.chapters[0].id);
+      } else if (fetchedCourse.chapters && !fetchedCourse.chapters.some(c => c.id === activeChapterId)) {
+        // If active chapter is not in the list, reset it
+        setActiveChapterId(fetchedCourse.chapters.length > 0 ? fetchedCourse.chapters[0].id : null);
+      }
     }
-  }, [course, activeChapterId, setActiveChapterId]);
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    fetchCourseData();
+  }, [params.id]);
 
 
   const activeChapter = useMemo(
@@ -48,22 +50,26 @@ export default function CoursePage({ params }: { params: { id: string } }) {
   };
 
   const handleAddChapter = async (newChapter: Chapter) => {
-    if (!course) return;
-    await addChapterToCourse(course.id, newChapter);
-    const updatedCourse = await getCourseById(course.id);
-    if(updatedCourse) {
-      setCourse({ ...updatedCourse });
-    }
+    await fetchCourseData();
     setActiveChapterId(newChapter.id);
   };
 
-  const handleUpdateChapter = async (chapterId: string, newContent: string) => {
+  const handleUpdateChapter = async (chapterId: string, updatedChapter: Chapter) => {
     if (!course) return;
-    await updateChapterContent(course.id, chapterId, newContent); 
-    const updatedCourse = await getCourseById(course.id);
-    if(updatedCourse) {
-      setCourse({ ...updatedCourse });
-    }
+    // Optimistically update UI
+    setCourse(prev => {
+        if (!prev) return null;
+        const chapterIndex = prev.chapters?.findIndex(c => c.id === chapterId);
+        if (prev.chapters && chapterIndex !== -1) {
+            const newChapters = [...prev.chapters];
+            newChapters[chapterIndex] = updatedChapter;
+            return { ...prev, chapters: newChapters };
+        }
+        return prev;
+    });
+
+    // Then refetch data to ensure consistency
+    await fetchCourseData(); 
   };
 
   if (loading || !course) {
