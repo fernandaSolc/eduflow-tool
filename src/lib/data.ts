@@ -1,30 +1,37 @@
+'use server';
+
 import type { Course, Chapter } from './definitions';
 import { backendService } from './services';
 
 export const getCourses = async (): Promise<Course[]> => {
     try {
         const response = await backendService.getCourses();
+        // A API retorna um objeto com 'data' e 'pagination', pegamos apenas 'data'
         return response.data;
     } catch (error) {
         console.error("Failed to fetch courses:", error);
-        throw error;
+        // Em caso de erro, retorna um array vazio para não quebrar a UI
+        return [];
     }
 }
 
 export const getCourseById = async (id: string): Promise<Course | undefined> => {
     if (!id) return undefined;
     try {
-        const response = await backendService.getCourseById(id);
-        const course = response.data;
+        // A API retorna um objeto com 'success' e 'data'
+        const { data: course } = await backendService.getCourseById(id);
         
-        // Fetch chapters separately and attach them to the course
-        const chaptersResponse = await backendService.getCourseChapters(id);
-        course.chapters = chaptersResponse.data;
+        if (course) {
+            // Fetch chapters separadamente e anexa ao curso
+            const { data: chapters } = await backendService.getCourseChapters(id);
+            course.chapters = chapters;
+        }
 
         return course;
     } catch (error) {
         console.error(`Failed to fetch course ${id}:`, error);
-        throw error;
+        // Retorna undefined para que a página possa tratar como "não encontrado"
+        return undefined;
     }
 }
 
