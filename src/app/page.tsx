@@ -57,12 +57,6 @@ export default function Home() {
                 Continue de onde parou ou explore seus projetos.
                 </p>
             </div>
-            <Button asChild className="shrink-0">
-                <Link href="/courses/new">
-                    Criar Novo Curso
-                    <PlusCircle className="ml-2 h-5 w-5" />
-                </Link>
-            </Button>
         </div>
         {loading ? (
            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
