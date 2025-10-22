@@ -9,12 +9,13 @@ import { ChapterContent } from '@/components/chapters/chapter-content';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 
 export default function CoursePage({ params }: { params: { id: string } }) {
+  const { id: courseId } = params;
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [activeChapterId, setActiveChapterId] = useLocalStorage<string | null>(
-    `activeChapter_${params.id}`,
+    `activeChapter_${courseId}`,
     null
   );
 
@@ -22,7 +23,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
     setLoading(true);
     setError(null);
     try {
-        const fetchedCourse = await getCourseById(params.id);
+        const fetchedCourse = await getCourseById(courseId);
         if (!fetchedCourse) {
             notFound();
         } else {
@@ -42,12 +43,14 @@ export default function CoursePage({ params }: { params: { id: string } }) {
     } finally {
         setLoading(false);
     }
-  }, [params.id, activeChapterId, setActiveChapterId]);
+  }, [courseId, activeChapterId, setActiveChapterId]);
 
 
   useEffect(() => {
-    fetchCourseData();
-  }, [params.id]); // Removed fetchCourseData from dependency array to prevent loops
+    if (courseId) {
+      fetchCourseData();
+    }
+  }, [courseId, fetchCourseData]);
 
   const activeChapter = useMemo(
     () => course?.chapters?.find((c) => c.id === activeChapterId),
