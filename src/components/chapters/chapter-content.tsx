@@ -10,7 +10,7 @@ import { EnrichChapterForm } from './enrich-chapter-form';
 type ChapterContentProps = {
   course: Course;
   chapter: Chapter | undefined;
-  onUpdateChapter: (chapterId: string, updatedChapter: Chapter) => void;
+  onUpdateChapter: () => void;
 };
 
 export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterContentProps) {

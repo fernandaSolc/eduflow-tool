@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { getCourseById, addChapterToCourse, updateChapter } from '@/lib/data';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { getCourseById } from '@/lib/data';
 import type { Course, Chapter } from '@/lib/definitions';
 import { notFound } from 'next/navigation';
 import { ChapterList } from '@/components/chapters/chapter-list';
@@ -17,7 +17,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
     null
   );
 
-  const fetchCourseData = async () => {
+  const fetchCourseData = useCallback(async () => {
     setLoading(true);
     const fetchedCourse = await getCourseById(params.id);
     if (!fetchedCourse) {
@@ -33,11 +33,11 @@ export default function CoursePage({ params }: { params: { id: string } }) {
       }
     }
     setLoading(false);
-  }
+  }, [params.id, activeChapterId, setActiveChapterId]);
 
   useEffect(() => {
     fetchCourseData();
-  }, [params.id]);
+  }, [fetchCourseData]);
 
 
   const activeChapter = useMemo(
@@ -54,23 +54,10 @@ export default function CoursePage({ params }: { params: { id: string } }) {
     setActiveChapterId(newChapter.id);
   };
 
-  const handleUpdateChapter = async (chapterId: string, updatedChapter: Chapter) => {
-    if (!course) return;
-    // Optimistically update UI
-    setCourse(prev => {
-        if (!prev) return null;
-        const chapterIndex = prev.chapters?.findIndex(c => c.id === chapterId);
-        if (prev.chapters && chapterIndex !== -1) {
-            const newChapters = [...prev.chapters];
-            newChapters[chapterIndex] = updatedChapter;
-            return { ...prev, chapters: newChapters };
-        }
-        return prev;
-    });
-
-    // Then refetch data to ensure consistency
-    await fetchCourseData(); 
-  };
+  const handleUpdateChapter = useCallback(async () => {
+    // Just refetch the data to get the latest version
+    await fetchCourseData();
+  }, [fetchCourseData]);
 
   if (loading || !course) {
     return <div className="text-center p-8">Carregando curso...</div>;

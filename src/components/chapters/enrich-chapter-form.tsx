@@ -27,7 +27,7 @@ const formSchema = z.object({
 
 type EnrichChapterFormProps = {
   chapter: Chapter;
-  onUpdateChapter: (chapterId: string, updatedChapter: Chapter) => void;
+  onUpdateChapter: () => void;
 };
 
 export function EnrichChapterForm({
@@ -52,7 +52,7 @@ export function EnrichChapterForm({
     setIsSubmitting(false);
 
     if (result.success && result.data) {
-      onUpdateChapter(result.data.id, result.data);
+      onUpdateChapter();
       toast({
         title: 'Capítulo Enriquecido!',
         description: `A assistência da IA foi usada para este enriquecimento.`,

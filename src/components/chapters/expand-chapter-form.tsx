@@ -36,7 +36,7 @@ const formSchema = z.object({
 
 type ExpandChapterFormProps = {
   chapter: Chapter;
-  onUpdateChapter: (chapterId: string, updatedChapter: Chapter) => void;
+  onUpdateChapter: () => void;
 };
 
 export function ExpandChapterForm({
@@ -63,7 +63,7 @@ export function ExpandChapterForm({
     setIsSubmitting(false);
 
     if (result.success && result.data) {
-      onUpdateChapter(result.data.id, result.data);
+      onUpdateChapter();
       toast({
         title: 'Capítulo Expandido!',
         description: 'Seu capítulo foi atualizado com novo conteúdo.',

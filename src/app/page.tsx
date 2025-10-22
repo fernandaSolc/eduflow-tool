@@ -3,7 +3,7 @@
 import { getCourses } from '@/lib/data';
 import { CourseCard } from '@/components/courses/course-card';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, PlusCircle, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import type { Course } from '@/lib/definitions';
