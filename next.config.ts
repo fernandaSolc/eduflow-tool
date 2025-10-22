@@ -30,6 +30,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    fetchCache: false,
+  }
 };
 
 export default nextConfig;
