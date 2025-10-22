@@ -7,7 +7,7 @@ import { PageNav } from '@/components/layout/page-nav';
 
 export const metadata: Metadata = {
   title: 'Eduflow Tool',
-  description: 'AI-powered course content generation tool.',
+  description: 'Ferramenta de geração de conteúdo de curso com IA.',
 };
 
 export default function RootLayout({
@@ -16,8 +16,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="pt-BR" className="dark">
       <head>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
