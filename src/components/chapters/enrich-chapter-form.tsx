@@ -1,20 +1,27 @@
-"use client";
+'use client';
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { enrichChapterAction } from "@/lib/actions";
-import type { Chapter } from "@/lib/definitions";
-import { useState } from "react";
-import { Loader2, Wand2 } from "lucide-react";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { enrichChapterAction } from '@/lib/actions';
+import type { Chapter } from '@/lib/definitions';
+import { useState } from 'react';
+import { Loader2, Wand2 } from 'lucide-react';
 
 const formSchema = z.object({
   userQuery: z.string().min(10, {
-    message: "Please provide a more detailed query for enrichment.",
+    message: 'Please provide a more detailed query for enrichment.',
   }),
 });
 
@@ -24,14 +31,18 @@ type EnrichChapterFormProps = {
   onUpdateChapter: (chapterId: string, newContent: string) => void;
 };
 
-export function EnrichChapterForm({ chapter, courseId, onUpdateChapter }: EnrichChapterFormProps) {
+export function EnrichChapterForm({
+  chapter,
+  courseId,
+  onUpdateChapter,
+}: EnrichChapterFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      userQuery: "",
+      userQuery: '',
     },
   });
 
@@ -46,14 +57,16 @@ export function EnrichChapterForm({ chapter, courseId, onUpdateChapter }: Enrich
     if (result.success && result.data) {
       onUpdateChapter(result.data.id, result.data.content);
       toast({
-        title: "Chapter Enriched!",
-        description: `AI assistance was ${result.data.aiUsed ? 'used' : 'not used'} for this enrichment.`,
+        title: 'Chapter Enriched!',
+        description: `AI assistance was ${
+          result.data.aiUsed ? 'used' : 'not used'
+        } for this enrichment.`,
       });
       form.reset();
     } else {
       toast({
-        variant: "destructive",
-        title: "Error",
+        variant: 'destructive',
+        title: 'Error',
         description: result.error,
       });
     }
@@ -69,7 +82,10 @@ export function EnrichChapterForm({ chapter, courseId, onUpdateChapter }: Enrich
             <FormItem>
               <FormLabel>Enrichment Query</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., 'Add a real-world example for this concept'" {...field} />
+                <Input
+                  placeholder="e.g., 'Add a real-world example for this concept'"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

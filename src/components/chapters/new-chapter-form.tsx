@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -20,22 +20,22 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { generateChapterAction } from "@/lib/actions";
-import type { Chapter } from "@/lib/definitions";
-import { useState, type ReactNode } from "react";
-import { Loader2, Sparkles } from "lucide-react";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { generateChapterAction } from '@/lib/actions';
+import type { Chapter } from '@/lib/definitions';
+import { useState, type ReactNode } from 'react';
+import { Loader2, Sparkles } from 'lucide-react';
 
 const formSchema = z.object({
   title: z.string().min(5, {
-    message: "Title must be at least 5 characters.",
+    message: 'Title must be at least 5 characters.',
   }),
   prompt: z.string().min(20, {
-    message: "Prompt must be at least 20 characters.",
+    message: 'Prompt must be at least 20 characters.',
   }),
 });
 
@@ -47,15 +47,21 @@ type NewChapterFormProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-export function NewChapterForm({ courseId, onChapterCreated, children, open, onOpenChange }: NewChapterFormProps) {
+export function NewChapterForm({
+  courseId,
+  onChapterCreated,
+  children,
+  open,
+  onOpenChange,
+}: NewChapterFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
-      prompt: "",
+      title: '',
+      prompt: '',
     },
   });
 
@@ -67,15 +73,15 @@ export function NewChapterForm({ courseId, onChapterCreated, children, open, onO
     if (result.success && result.data) {
       onChapterCreated(result.data);
       toast({
-        title: "Chapter Generated!",
+        title: 'Chapter Generated!',
         description: `New chapter "${values.title}" has been added.`,
       });
       onOpenChange(false);
       form.reset();
     } else {
       toast({
-        variant: "destructive",
-        title: "Error",
+        variant: 'destructive',
+        title: 'Error',
         description: result.error,
       });
     }
@@ -88,11 +94,15 @@ export function NewChapterForm({ courseId, onChapterCreated, children, open, onO
         <DialogHeader>
           <DialogTitle className="font-headline">Generate New Chapter</DialogTitle>
           <DialogDescription>
-            Use AI to generate a new chapter for your course. Provide a title and a detailed prompt.
+            Use AI to generate a new chapter for your course. Provide a title
+            and a detailed prompt.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4 py-4"
+          >
             <FormField
               control={form.control}
               name="title"
@@ -100,7 +110,10 @@ export function NewChapterForm({ courseId, onChapterCreated, children, open, onO
                 <FormItem>
                   <FormLabel>Chapter Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Introduction to React Hooks" {...field} />
+                    <Input
+                      placeholder="e.g., Introduction to React Hooks"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

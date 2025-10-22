@@ -57,14 +57,14 @@ export default function NewCoursePage() {
 
     if (result.success && result.data) {
       toast({
-        title: 'Curso Criado com Sucesso!',
-        description: `O curso "${result.data.title}" foi criado.`,
+        title: 'Course Created Successfully!',
+        description: `The course "${result.data.title}" was created.`,
       });
       router.push(`/courses/${result.data.id}`);
     } else {
       toast({
         variant: 'destructive',
-        title: 'Erro ao Criar Curso',
+        title: 'Error Creating Course',
         description: result.error,
       });
     }
@@ -74,9 +74,9 @@ export default function NewCoursePage() {
     <div className="max-w-4xl mx-auto">
        <Card>
         <CardHeader>
-          <CardTitle className="font-headline text-2xl">Criar Novo Curso</CardTitle>
+          <CardTitle className="font-headline text-2xl">Create New Course</CardTitle>
           <CardDescription>
-            Preencha os detalhes abaixo para criar um novo curso. A IA usará essas informações para gerar o conteúdo.
+            Fill in the details below to create a new course. The AI will use this information to generate the content.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -87,11 +87,11 @@ export default function NewCoursePage() {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Título do Curso</FormLabel>
+                    <FormLabel>Course Title</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: Empreendedorismo no Maranhão" {...field} />
+                      <Input placeholder="Ex: Entrepreneurship in Maranhão" {...field} />
                     </FormControl>
-                    <FormDescription>O título principal do seu curso.</FormDescription>
+                    <FormDescription>The main title of your course.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -101,16 +101,16 @@ export default function NewCoursePage() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Descrição do Curso</FormLabel>
+                    <FormLabel>Course Description</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Descreva o que os alunos aprenderão neste curso."
+                        placeholder="Describe what students will learn in this course."
                         className="resize-none"
                         rows={3}
                         {...field}
                       />
                     </FormControl>
-                     <FormDescription>Um resumo conciso do conteúdo e objetivos.</FormDescription>
+                     <FormDescription>A concise summary of the content and objectives.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -121,9 +121,9 @@ export default function NewCoursePage() {
                   name="subject"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Disciplina</FormLabel>
+                      <FormLabel>Subject</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: Empreendedorismo" {...field} />
+                        <Input placeholder="Ex: Entrepreneurship" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -134,9 +134,9 @@ export default function NewCoursePage() {
                   name="educationalLevel"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nível Educacional</FormLabel>
+                      <FormLabel>Educational Level</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: Ensino Médio" {...field} />
+                        <Input placeholder="Ex: High School" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -149,9 +149,9 @@ export default function NewCoursePage() {
                   name="targetAudience"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Público-Alvo</FormLabel>
+                      <FormLabel>Target Audience</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: Estudantes do ensino médio" {...field} />
+                        <Input placeholder="Ex: High school students" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -176,10 +176,10 @@ export default function NewCoursePage() {
                 name="philosophy"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Filosofia Educacional</FormLabel>
+                    <FormLabel>Educational Philosophy</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Descreva a abordagem pedagógica do curso."
+                        placeholder="Describe the pedagogical approach of the course."
                         className="resize-none"
                         {...field}
                       />
@@ -195,7 +195,7 @@ export default function NewCoursePage() {
                   ) : (
                     <Sparkles className="mr-2 h-4 w-4" />
                   )}
-                  Criar Curso e ir para Capítulos
+                  Create Course and Go to Chapters
                 </Button>
               </div>
             </form>

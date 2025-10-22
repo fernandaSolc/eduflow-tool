@@ -61,10 +61,10 @@ export function ChapterList({
             </ul>
           ) : (
             <div className="p-8 text-center text-sm text-muted-foreground">
-              <p className="mb-4">Nenhum capítulo foi criado ainda.</p>
+              <p className="mb-4">No chapters have been created yet.</p>
               <Button onClick={() => setIsModalOpen(true)}>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Criar Primeiro Capítulo
+                Create First Chapter
               </Button>
             </div>
           )}
