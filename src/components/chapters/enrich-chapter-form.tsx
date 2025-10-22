@@ -21,7 +21,7 @@ import { Loader2, Wand2 } from 'lucide-react';
 
 const formSchema = z.object({
   userQuery: z.string().min(10, {
-    message: 'Please provide a more detailed query for enrichment.',
+    message: 'Por favor, forneça uma consulta mais detalhada para enriquecimento.',
   }),
 });
 
@@ -57,16 +57,16 @@ export function EnrichChapterForm({
     if (result.success && result.data) {
       onUpdateChapter(result.data.id, result.data.content);
       toast({
-        title: 'Chapter Enriched!',
-        description: `AI assistance was ${
-          result.data.aiUsed ? 'used' : 'not used'
-        } for this enrichment.`,
+        title: 'Capítulo Enriquecido!',
+        description: `A assistência da IA foi ${
+          result.data.aiUsed ? 'usada' : 'não usada'
+        } para este enriquecimento.`,
       });
       form.reset();
     } else {
       toast({
         variant: 'destructive',
-        title: 'Error',
+        title: 'Erro',
         description: result.error,
       });
     }
@@ -80,10 +80,10 @@ export function EnrichChapterForm({
           name="userQuery"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Enrichment Query</FormLabel>
+              <FormLabel>Consulta de Enriquecimento</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="e.g., 'Add a real-world example for this concept'"
+                  placeholder="Ex: 'Adicione um exemplo do mundo real para este conceito'"
                   {...field}
                 />
               </FormControl>
@@ -97,7 +97,7 @@ export function EnrichChapterForm({
           ) : (
             <Wand2 className="mr-2 h-4 w-4" />
           )}
-          Enrich
+          Enriquecer
         </Button>
       </form>
     </Form>

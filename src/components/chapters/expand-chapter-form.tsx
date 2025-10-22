@@ -29,17 +29,17 @@ import { Loader2, StretchHorizontal } from 'lucide-react';
 
 const formSchema = z.object({
   continuationType: z.string({
-    required_error: 'Please select a continuation type.',
+    required_error: 'Por favor, selecione um tipo de continuação.',
   }),
   additionalDetails: z.string().optional(),
 });
 
 const continuationTypes = [
-  'More examples',
-  'Deeper explanation',
-  'Related topics',
-  'Summarize the key points',
-  'Create a quiz',
+  'Mais exemplos',
+  'Explicação mais profunda',
+  'Tópicos relacionados',
+  'Resumir os pontos chave',
+  'Criar um quiz',
 ];
 
 type ExpandChapterFormProps = {
@@ -74,14 +74,14 @@ export function ExpandChapterForm({
     if (result.success && result.data) {
       onUpdateChapter(result.data.id, result.data.content);
       toast({
-        title: 'Chapter Expanded!',
-        description: 'Your chapter has been updated with new content.',
+        title: 'Capítulo Expandido!',
+        description: 'Seu capítulo foi atualizado com novo conteúdo.',
       });
       form.reset();
     } else {
       toast({
         variant: 'destructive',
-        title: 'Error',
+        title: 'Erro',
         description: result.error,
       });
     }
@@ -96,14 +96,14 @@ export function ExpandChapterForm({
             name="continuationType"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Continuation Type</FormLabel>
+                <FormLabel>Tipo de Continuação</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select how to continue..." />
+                      <SelectValue placeholder="Selecione como continuar..." />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -123,16 +123,16 @@ export function ExpandChapterForm({
             name="additionalDetails"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Additional Details (Optional)</FormLabel>
+                <FormLabel>Detalhes Adicionais (Opcional)</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="e.g., 'Focus on performance implications...'"
+                    placeholder="Ex: 'Foque nas implicações de performance...'"
                     className="resize-none"
                     {...field}
                   />
                 </FormControl>
                 <FormDescription>
-                  Provide extra context to guide the AI.
+                  Forneça contexto extra para guiar a IA.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -145,7 +145,7 @@ export function ExpandChapterForm({
           ) : (
             <StretchHorizontal className="mr-2 h-4 w-4" />
           )}
-          Expand
+          Expandir
         </Button>
       </form>
     </Form>

@@ -35,7 +35,7 @@ export function ChapterList({
         >
           <Button variant="ghost" size="icon" onClick={() => setIsModalOpen(true)} className="shrink-0">
             <PlusCircle className="h-5 w-5 text-primary" />
-            <span className="sr-only">Add New Chapter</span>
+            <span className="sr-only">Adicionar Novo Capítulo</span>
           </Button>
         </NewChapterForm>
       </header>
@@ -61,10 +61,10 @@ export function ChapterList({
             </ul>
           ) : (
             <div className="p-8 text-center text-sm text-muted-foreground">
-              <p className="mb-4">No chapters have been created yet.</p>
+              <p className="mb-4">Nenhum capítulo foi criado ainda.</p>
               <Button onClick={() => setIsModalOpen(true)}>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Create First Chapter
+                Criar Primeiro Capítulo
               </Button>
             </div>
           )}

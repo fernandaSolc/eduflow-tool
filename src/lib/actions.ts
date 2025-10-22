@@ -24,8 +24,8 @@ export async function createCourseAction(
     revalidatePath('/');
     return { success: true, data: newCourse };
   } catch (error) {
-    console.error('Error creating course:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to create course.';
+    console.error('Erro ao criar curso:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Falha ao criar o curso.';
     return { success: false, error: errorMessage };
   }
 }
@@ -37,14 +37,14 @@ export async function generateChapterAction(
 ) {
   try {
     const input: GenerateNewChapterContentInput = {
-      courseTitle: courseId, // Assuming courseId is the title for simplicity
-      chapterPrompt: `Title: ${values.title}\nPrompt: ${values.prompt}`,
+      courseTitle: courseId, // Assumindo que courseId é o título para simplificar
+      chapterPrompt: `Título: ${values.title}\nPrompt: ${values.prompt}`,
     };
     const { chapterContent } = await generateNewChapterContent(input);
 
-    // In a real app, you'd save this to your database.
-    // For now, we'll just log it and revalidate.
-    console.log('Generated Chapter Content:', chapterContent);
+    // Em um app real, você salvaria isso no seu banco de dados.
+    // Por agora, vamos apenas registrar e revalidar.
+    console.log('Conteúdo do Capítulo Gerado:', chapterContent);
 
     revalidatePath(`/courses/${courseId}`);
     return {
@@ -58,8 +58,8 @@ export async function generateChapterAction(
       },
     };
   } catch (error) {
-    console.error('Error generating chapter:', error);
-    return { success: false, error: 'Failed to generate chapter.' };
+    console.error('Erro ao gerar capítulo:', error);
+    return { success: false, error: 'Falha ao gerar capítulo.' };
   }
 }
 
@@ -80,8 +80,8 @@ export async function expandChapterAction(
     };
     const { expandedContent } = await expandExistingChapterContent(input);
 
-    // In a real app, you'd update this in your database.
-    console.log('Expanded Chapter Content:', expandedContent);
+    // Em um app real, você atualizaria isso no seu banco de dados.
+    console.log('Conteúdo do Capítulo Expandido:', expandedContent);
 
     revalidatePath(`/courses/${courseId}`);
     return {
@@ -92,8 +92,8 @@ export async function expandChapterAction(
       },
     };
   } catch (error) {
-    console.error('Error expanding chapter:', error);
-    return { success: false, error: 'Failed to expand chapter.' };
+    console.error('Erro ao expandir capítulo:', error);
+    return { success: false, error: 'Falha ao expandir capítulo.' };
   }
 }
 
@@ -112,7 +112,7 @@ export async function enrichChapterAction(
     };
     const { enrichedContent, aiUsed } = await intelligentChapterEnrichment(input);
     
-    console.log('Enriched Chapter Content:', enrichedContent, 'AI Used:', aiUsed);
+    console.log('Conteúdo do Capítulo Enriquecido:', enrichedContent, 'IA Usada:', aiUsed);
     
     revalidatePath(`/courses/${courseId}`);
     return {
@@ -124,7 +124,7 @@ export async function enrichChapterAction(
       },
     };
   } catch (error) {
-    console.error('Error enriching chapter:', error);
-    return { success: false, error: 'Failed to enrich chapter.' };
+    console.error('Erro ao enriquecer capítulo:', error);
+    return { success: false, error: 'Falha ao enriquecer capítulo.' };
   }
 }

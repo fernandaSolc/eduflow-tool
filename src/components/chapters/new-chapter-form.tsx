@@ -32,10 +32,10 @@ import { Loader2, Sparkles } from 'lucide-react';
 
 const formSchema = z.object({
   title: z.string().min(5, {
-    message: 'Title must be at least 5 characters.',
+    message: 'O título deve ter pelo menos 5 caracteres.',
   }),
   prompt: z.string().min(20, {
-    message: 'Prompt must be at least 20 characters.',
+    message: 'O prompt deve ter pelo menos 20 caracteres.',
   }),
 });
 
@@ -73,15 +73,15 @@ export function NewChapterForm({
     if (result.success && result.data) {
       onChapterCreated(result.data);
       toast({
-        title: 'Chapter Generated!',
-        description: `New chapter "${values.title}" has been added.`,
+        title: 'Capítulo Gerado!',
+        description: `O novo capítulo "${values.title}" foi adicionado.`,
       });
       onOpenChange(false);
       form.reset();
     } else {
       toast({
         variant: 'destructive',
-        title: 'Error',
+        title: 'Erro',
         description: result.error,
       });
     }
@@ -92,10 +92,10 @@ export function NewChapterForm({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="font-headline">Generate New Chapter</DialogTitle>
+          <DialogTitle className="font-headline">Gerar Novo Capítulo</DialogTitle>
           <DialogDescription>
-            Use AI to generate a new chapter for your course. Provide a title
-            and a detailed prompt.
+            Use IA para gerar um novo capítulo para o seu curso. Forneça um título
+            e um prompt detalhado.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -108,10 +108,10 @@ export function NewChapterForm({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Chapter Title</FormLabel>
+                  <FormLabel>Título do Capítulo</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g., Introduction to React Hooks"
+                      placeholder="Ex: Introdução a React Hooks"
                       {...field}
                     />
                   </FormControl>
@@ -124,17 +124,17 @@ export function NewChapterForm({
               name="prompt"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Chapter Prompt</FormLabel>
+                  <FormLabel>Prompt do Capítulo</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Describe the content you want to generate. Include key topics, desired tone, and target audience."
+                      placeholder="Descreva o conteúdo que você quer gerar. Inclua tópicos chave, tom desejado e público-alvo."
                       className="resize-none"
                       rows={5}
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    The more detailed your prompt, the better the result.
+                    Quanto mais detalhado seu prompt, melhor o resultado.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -147,7 +147,7 @@ export function NewChapterForm({
                 ) : (
                   <Sparkles className="mr-2 h-4 w-4" />
                 )}
-                Generate
+                Gerar
               </Button>
             </DialogFooter>
           </form>

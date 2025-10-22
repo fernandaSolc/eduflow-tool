@@ -12,7 +12,7 @@ export function Header() {
           <span className="hidden sm:inline-block">Eduflow Tool</span>
       </Link>
       <div className="ml-auto flex items-center gap-4">
-        <ServiceStatus serviceName="AI Service" />
+        <ServiceStatus serviceName="Serviço de IA" />
         <ServiceStatus serviceName="Backend" />
       </div>
     </header>

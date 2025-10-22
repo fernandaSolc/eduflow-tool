@@ -67,7 +67,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
   };
 
   if (loading || !course) {
-    return <div className="text-center p-8">Loading course...</div>;
+    return <div className="text-center p-8">Carregando curso...</div>;
   }
 
   return (

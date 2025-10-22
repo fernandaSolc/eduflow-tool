@@ -34,7 +34,7 @@ export function CourseCard({ course }: CourseCardProps) {
        <CardFooter className="p-4 pt-0">
          <Button asChild variant="outline" size="sm" className="w-full">
             <Link href={`/courses/${course.id}`}>
-              Open Course
+              Abrir Curso
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>

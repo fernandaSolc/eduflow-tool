@@ -58,11 +58,11 @@ export class BackendService {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      console.error(`Backend error: ${response.status} ${response.statusText}`, errorBody);
-      throw new Error(`Backend error: ${response.status} ${response.statusText}. ${errorBody}`);
+      console.error(`Erro de backend: ${response.status} ${response.statusText}`, errorBody);
+      throw new Error(`Erro de backend: ${response.status} ${response.statusText}. ${errorBody}`);
     }
 
-    // Handle cases where response might be empty
+    // Lida com casos onde a resposta pode estar vazia
     const text = await response.text();
     try {
         return JSON.parse(text);

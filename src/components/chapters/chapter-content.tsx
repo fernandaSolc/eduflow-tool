@@ -20,10 +20,10 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
       <div className="flex h-full flex-col items-center justify-center p-8 text-center">
         <Sparkles className="h-16 w-16 text-primary" />
         <h2 className="mt-6 font-headline text-2xl font-semibold">
-          Welcome to {course.title}
+          Bem-vindo a {course.title}
         </h2>
         <p className="mt-2 text-muted-foreground">
-          Select a chapter on the left to start viewing, or create a new chapter to begin.
+          Selecione um capítulo à esquerda para começar a visualizar ou crie um novo capítulo para começar.
         </p>
       </div>
     );
@@ -49,8 +49,8 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
                     <StretchHorizontal className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                    <CardTitle className="font-headline text-lg">Expand Content</CardTitle>
-                    <CardDescription>Generate additional content for this chapter.</CardDescription>
+                    <CardTitle className="font-headline text-lg">Expandir Conteúdo</CardTitle>
+                    <CardDescription>Gere conteúdo adicional para este capítulo.</CardDescription>
                 </div>
             </CardHeader>
             <CardContent>
@@ -64,8 +64,8 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
                     <Wand2 className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                    <CardTitle className="font-headline text-lg">Enrich Content</CardTitle>
-                    <CardDescription>Use AI to intelligently enrich this chapter.</CardDescription>
+                    <CardTitle className="font-headline text-lg">Enriquecer Conteúdo</CardTitle>
+                    <CardDescription>Use IA para enriquecer inteligentemente este capítulo.</CardDescription>
                 </div>
             </CardHeader>
             <CardContent>
