@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { BookOpenCheck } from 'lucide-react';
 import { ServiceStatus } from './service-status';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export function Header() {
   return (
@@ -12,6 +13,7 @@ export function Header() {
           <span className="hidden sm:inline-block">Eduflow Tool</span>
       </Link>
       <div className="ml-auto flex items-center gap-4">
+        <ThemeToggle />
         <ServiceStatus serviceName="Serviço de IA" />
         <ServiceStatus serviceName="Backend" />
       </div>
