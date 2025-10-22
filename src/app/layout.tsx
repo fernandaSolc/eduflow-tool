@@ -5,6 +5,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/toaster';
 import { SidebarNav } from '@/components/layout/sidebar-nav';
 import { Header } from '@/components/layout/header';
+import { PageNav } from '@/components/layout/page-nav';
 
 export const metadata: Metadata = {
   title: 'Eduflow Tool',
@@ -37,8 +38,9 @@ export default function RootLayout({
       <body className={cn('font-body antialiased min-h-screen w-full bg-background text-foreground')}>
         <SidebarProvider>
           <SidebarNav />
-          <main className="flex min-h-svh flex-1 flex-col bg-background peer-data-[variant=sidebar]:pl-0 md:peer-data-[variant=sidebar]:pl-[--sidebar-width-icon] lg:peer-data-[variant=sidebar]:pl-[--sidebar-width]">
+          <main className="flex min-h-svh flex-1 flex-col bg-background md:peer-data-[state=expanded]:peer-data-[variant=sidebar]:pl-[--sidebar-width] md:peer-data-[state=collapsed]:peer-data-[variant=sidebar]:pl-[--sidebar-width-icon]">
             <Header />
+            <PageNav />
             <div className="flex-1 p-4 sm:p-6 lg:p-8">{children}</div>
           </main>
         </SidebarProvider>

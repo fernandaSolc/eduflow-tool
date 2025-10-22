@@ -10,17 +10,14 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import {
-  LayoutDashboard,
   Settings,
   BookOpenCheck,
   LifeBuoy,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { Separator } from '../ui/separator';
 
 export function SidebarNav() {
-  const pathname = usePathname();
 
   return (
     <Sidebar variant="sidebar" collapsible="icon" side="left">
@@ -33,36 +30,19 @@ export function SidebarNav() {
         </div>
       </SidebarHeader>
       <SidebarContent className="p-2">
-        <SidebarMenu>
+        {/* Main navigation has been moved to PageNav */}
+      </SidebarContent>
+      <SidebarFooter className="p-2">
+         <Separator className="my-2 bg-sidebar-border" />
+         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              isActive={pathname === '/'}
-              tooltip={{ children: 'Dashboard' }}
-            >
-              <Link href="/">
-                <LayoutDashboard />
-                <span>Dashboard</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              isActive={pathname.startsWith('/settings')}
-              tooltip={{ children: 'Settings' }}
-            >
+            <SidebarMenuButton tooltip={{ children: 'Settings' }} asChild>
               <Link href="#">
                 <Settings />
                 <span>Settings</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarContent>
-      <SidebarFooter className="p-2">
-         <Separator className="my-2 bg-sidebar-border" />
-         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton tooltip={{ children: 'Support' }} asChild>
               <Link href="#">
