@@ -1,12 +1,9 @@
 'use client';
 
 import type { Course, Chapter } from '@/lib/definitions';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { BookText, Sparkles, StretchHorizontal, Wand2, Bot } from 'lucide-react';
-import { ExpandChapterForm } from './expand-chapter-form';
-import { EnrichChapterForm } from './enrich-chapter-form';
-import { useState } from 'react';
+import { BookText } from 'lucide-react';
+import { useState, useMemo } from 'react';
 import { EditorToolbar } from './editor-toolbar';
 import { AiActionForm } from './ai-action-form';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -23,15 +20,14 @@ type ToolbarAction = 'edit' | 'ai-expand' | 'ai-simplify';
 
 export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterContentProps) {
   const [selection, setSelection] = useState<string | null>(null);
-  const [popoverState, setPopoverState] = useState<{ open: boolean; action: ToolbarAction | null }>({
-    open: false,
-    action: null,
-  });
+  const [popoverAction, setPopoverAction] = useState<ToolbarAction | null>(null);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [manualEditContent, setManualEditContent] = useState('');
 
+  const chapterKey = useMemo(() => chapter?.id, [chapter]);
+
   const handleMouseUp = () => {
-    // Prevent changing selection if a popover is already open
-    if (popoverState.open) return;
+    if (isPopoverOpen) return;
 
     const selectedText = window.getSelection()?.toString().trim();
     if (selectedText && selectedText.length > 10) {
@@ -42,20 +38,22 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
   };
 
   const handleToolbarAction = (action: ToolbarAction, selectedText: string) => {
-    setSelection(selectedText); // Ensure selection is set
-    setPopoverState({ open: true, action: action });
+    setSelection(selectedText);
+    setPopoverAction(action);
+    setIsPopoverOpen(true);
     if(action === 'edit') {
       setManualEditContent(selectedText);
     }
   };
 
   const handlePopoverClose = () => {
-    setPopoverState({ open: false, action: null });
-    setSelection(null); // Clear selection when popover closes
+    setIsPopoverOpen(false);
+    setPopoverAction(null);
+    setSelection(null);
   };
   
   const handleAiActionSubmit = async (prompt: string) => {
-    console.log(`AI Action: ${popoverState.action}, Prompt: ${prompt}, Selection: ${selection}`);
+    console.log(`AI Action: ${popoverAction}, Prompt: ${prompt}, Selection: ${selection}`);
     // Here you would call your AI service and then onUpdateChapter
     // For now, we'll just close the popover
     handlePopoverClose();
@@ -82,29 +80,33 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
       </div>
     );
   }
-
+  
   const PopoverContentComponent = () => {
-    if (!popoverState.action || !selection) return null;
+    if (!popoverAction || !selection) return null;
     
-    if (popoverState.action === 'edit') {
+    if (popoverAction === 'edit') {
         return (
-            <div className="space-y-4">
+            <div className="space-y-4 p-4">
                 <h4 className="font-medium leading-none">Editar Trecho</h4>
                 <Textarea 
                     value={manualEditContent}
                     onChange={(e) => setManualEditContent(e.target.value)}
                     className="h-48"
                 />
-                <Button onClick={handleManualEditSubmit}>Salvar Alterações</Button>
+                 <div className="flex justify-end gap-2">
+                    <Button variant="ghost" onClick={handlePopoverClose}>Cancelar</Button>
+                    <Button onClick={handleManualEditSubmit}>Salvar Alterações</Button>
+                </div>
             </div>
         );
     }
 
-    const title = popoverState.action === 'ai-expand' ? 'Expandir com IA' : 'Simplificar com IA';
-    const placeholder = popoverState.action === 'ai-expand' 
+    const isExpand = popoverAction === 'ai-expand';
+    const title = isExpand ? 'Expandir com IA' : 'Simplificar com IA';
+    const placeholder = isExpand 
       ? 'Ex: Adicione mais detalhes sobre o impacto histórico...' 
       : 'Ex: Simplifique para um público iniciante...';
-    const buttonText = popoverState.action === 'ai-expand' ? 'Expandir' : 'Simplificar';
+    const buttonText = isExpand ? 'Expandir' : 'Simplificar';
     
     return (
         <AiActionForm
@@ -113,13 +115,14 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
             placeholder={placeholder}
             buttonText={buttonText}
             onSubmit={handleAiActionSubmit}
+            onClose={handlePopoverClose}
         />
     )
   }
 
   return (
-    <Popover open={popoverState.open} onOpenChange={(isOpen) => !isOpen && handlePopoverClose()}>
-        <ScrollArea className="h-full bg-background" onMouseUp={handleMouseUp}>
+    <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+        <ScrollArea className="h-full bg-background" onMouseUp={handleMouseUp} key={chapterKey}>
         <div className="p-4 sm:p-6 lg:p-12 prose prose-lg dark:prose-invert max-w-4xl mx-auto prose-headings:font-headline prose-code:font-code prose-code:bg-muted prose-code:p-1 prose-code:rounded">
             <header className="not-prose mb-12">
             <h1 className="font-headline text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
@@ -130,13 +133,13 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
             <div dangerouslySetInnerHTML={{ __html: chapter.content.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>').replace(/\n/g, '<br />') }} />
             
         </div>
-        {selection && !popoverState.open && (
+        {selection && !isPopoverOpen && (
              <PopoverTrigger asChild>
                 <EditorToolbar selection={selection} onAction={handleToolbarAction} />
              </PopoverTrigger>
         )}
         </ScrollArea>
-        <PopoverContent className="w-96" side="top" align="center" sideOffset={10}>
+        <PopoverContent className="w-96 p-0" side="top" align="center" sideOffset={10} onInteractOutside={handlePopoverClose}>
             <PopoverContentComponent />
         </PopoverContent>
     </Popover>

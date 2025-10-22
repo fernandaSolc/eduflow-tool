@@ -12,6 +12,7 @@ type AiActionFormProps = {
   placeholder: string;
   buttonText: string;
   onSubmit: (prompt: string) => Promise<void>;
+  onClose: () => void;
 };
 
 export function AiActionForm({
@@ -20,6 +21,7 @@ export function AiActionForm({
   placeholder,
   buttonText,
   onSubmit,
+  onClose,
 }: AiActionFormProps) {
   const [prompt, setPrompt] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,6 +31,7 @@ export function AiActionForm({
     setIsSubmitting(true);
     await onSubmit(prompt);
     setIsSubmitting(false);
+    onClose();
   };
 
   return (
@@ -52,7 +55,8 @@ export function AiActionForm({
           className="h-24"
         />
       </div>
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="ghost" onClick={onClose}>Cancelar</Button>
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
