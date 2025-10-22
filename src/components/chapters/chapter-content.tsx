@@ -9,6 +9,8 @@ import { AiActionForm } from './ai-action-form';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { expandChapterAction, simplifyChapterAction } from '@/lib/actions';
 
 type ChapterContentProps = {
   course: Course;
@@ -19,6 +21,7 @@ type ChapterContentProps = {
 type ToolbarAction = 'edit' | 'ai-expand' | 'ai-simplify';
 
 export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterContentProps) {
+  const { toast } = useToast();
   const [selection, setSelection] = useState<string | null>(null);
   const [popoverAction, setPopoverAction] = useState<ToolbarAction | null>(null);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -53,19 +56,48 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
   };
   
   const handleAiActionSubmit = async (prompt: string) => {
-    console.log(`AI Action: ${popoverAction}, Prompt: ${prompt}, Selection: ${selection}`);
-    // Here you would call your AI service and then onUpdateChapter
-    // For now, we'll just close the popover
-    handlePopoverClose();
+    if (!selection || !popoverAction || !chapter) return;
+
+    let result;
+    const values = { selection, additionalDetails: prompt };
+
+    try {
+      if (popoverAction === 'ai-expand') {
+        result = await expandChapterAction(course.id, chapter.id, values);
+      } else if (popoverAction === 'ai-simplify') {
+        result = await simplifyChapterAction(course.id, chapter.id, values);
+      }
+
+      if (result?.success) {
+        toast({
+          title: `Capítulo ${popoverAction === 'ai-expand' ? 'Expandido' : 'Simplificado'}!`,
+          description: "O conteúdo foi atualizado com sucesso.",
+        });
+        onUpdateChapter();
+      } else {
+        throw new Error(result?.error || 'Uma falha desconhecida ocorreu');
+      }
+    } catch (error) {
+       toast({
+        variant: "destructive",
+        title: "Erro ao Processar Ação",
+        description: error instanceof Error ? error.message : "Não foi possível completar a ação de IA.",
+      });
+    } finally {
+      handlePopoverClose();
+    }
   };
 
   const handleManualEditSubmit = async () => {
     console.log(`Manual Edit:`, manualEditContent);
-    // Here you would find and replace the text in the chapter content and save it.
-    // For now, we'll just close the popover
+    // TODO: Implementar a lógica de encontrar e substituir o texto no conteúdo do capítulo
+    // e salvar usando uma server action.
+    toast({
+      title: "Edição Manual",
+      description: "A funcionalidade de salvar a edição manual será implementada em breve.",
+    });
     handlePopoverClose();
   }
-
 
   if (!chapter) {
     return (
@@ -135,7 +167,9 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
         </div>
         {selection && !isPopoverOpen && (
              <PopoverTrigger asChild>
-                <EditorToolbar selection={selection} onAction={handleToolbarAction} />
+                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50">
+                    <EditorToolbar selection={selection} onAction={handleToolbarAction} />
+                </div>
              </PopoverTrigger>
         )}
         </ScrollArea>

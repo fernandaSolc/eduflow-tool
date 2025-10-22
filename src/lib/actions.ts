@@ -74,20 +74,24 @@ export async function generateChapterAction(
 }
 
 export async function expandChapterAction(
+  courseId: string,
   chapterId: string,
   values: {
-    continuationType: string;
+    selection: string;
     additionalDetails?: string;
   }
 ) {
   try {
+    // Monta um contexto mais rico para a IA
+    const context = `Expanda o seguinte trecho de texto: "${values.selection}".\nInstruções adicionais: ${values.additionalDetails || 'Nenhuma.'}`;
+
     const updatedChapter = await aiService.continueChapter(
         chapterId, 
-        values.continuationType, 
-        values.additionalDetails
+        'expand', // Ação de expansão
+        context
     );
 
-    revalidatePath(`/courses/${updatedChapter.courseId}`);
+    revalidatePath(`/courses/${courseId}`);
     return {
       success: true,
       data: updatedChapter,
@@ -98,6 +102,40 @@ export async function expandChapterAction(
     return { success: false, error: errorMessage };
   }
 }
+
+
+export async function simplifyChapterAction(
+  courseId: string,
+  chapterId: string,
+  values: {
+    selection: string;
+    additionalDetails?: string;
+  }
+) {
+  try {
+    // Monta um contexto mais rico para a IA
+    const context = `Simplifique o seguinte trecho de texto: "${values.selection}".\nInstruções adicionais: ${values.additionalDetails || 'Nenhuma.'}`;
+
+    // Reutilizando o `continueChapter` com um tipo de ação diferente
+    // O AI Service precisará saber como lidar com 'simplify'
+    const updatedChapter = await aiService.continueChapter(
+        chapterId, 
+        'simplify', 
+        context
+    );
+
+    revalidatePath(`/courses/${courseId}`);
+    return {
+      success: true,
+      data: updatedChapter,
+    };
+  } catch (error) {
+    console.error('Erro ao simplificar capítulo:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Falha ao simplificar capítulo.';
+    return { success: false, error: errorMessage };
+  }
+}
+
 
 export async function enrichChapterAction(
   chapter: Chapter,
