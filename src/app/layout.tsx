@@ -37,7 +37,7 @@ export default function RootLayout({
       <body className={cn('font-body antialiased min-h-screen w-full bg-background text-foreground')}>
         <SidebarProvider>
           <SidebarNav />
-          <main className="flex min-h-svh flex-1 flex-col bg-background peer-data-[variant=sidebar]:pl-[--sidebar-width-icon] lg:peer-data-[variant=sidebar]:pl-[--sidebar-width]">
+          <main className="flex min-h-svh flex-1 flex-col bg-background peer-data-[variant=sidebar]:pl-0 md:peer-data-[variant=sidebar]:pl-[--sidebar-width-icon] lg:peer-data-[variant=sidebar]:pl-[--sidebar-width]">
             <Header />
             <div className="flex-1 p-4 sm:p-6 lg:p-8">{children}</div>
           </main>
