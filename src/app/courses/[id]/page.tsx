@@ -19,25 +19,36 @@ export default function CoursePage({ params }: { params: { id: string } }) {
 
   const fetchCourseData = useCallback(async () => {
     setLoading(true);
-    const fetchedCourse = await getCourseById(params.id);
-    if (!fetchedCourse) {
-      notFound();
-    } else {
-      setCourse(fetchedCourse);
-       // Auto-select first chapter if none is active
-      if (fetchedCourse.chapters && fetchedCourse.chapters.length > 0 && !activeChapterId) {
-        setActiveChapterId(fetchedCourse.chapters[0].id);
-      } else if (fetchedCourse.chapters && !fetchedCourse.chapters.some(c => c.id === activeChapterId)) {
-        // If active chapter is not in the list, reset it
-        setActiveChapterId(fetchedCourse.chapters.length > 0 ? fetchedCourse.chapters[0].id : null);
-      }
+    try {
+        const fetchedCourse = await getCourseById(params.id);
+        if (!fetchedCourse) {
+            notFound();
+        } else {
+            setCourse(fetchedCourse);
+        }
+    } catch (error) {
+        console.error("Failed to fetch course data:", error);
+        // Optionally, set an error state to show in the UI
+        setCourse(null);
+    } finally {
+        setLoading(false);
     }
-    setLoading(false);
-  }, [params.id, activeChapterId, setActiveChapterId]);
+  }, [params.id]);
 
   useEffect(() => {
     fetchCourseData();
   }, [fetchCourseData]);
+
+  // Effect to manage the active chapter, runs only when course data changes
+  useEffect(() => {
+    if (course && course.chapters && course.chapters.length > 0) {
+      const chapterExists = course.chapters.some(c => c.id === activeChapterId);
+      // Auto-select first chapter if no chapter is active or the active one is not in the list
+      if (!activeChapterId || !chapterExists) {
+        setActiveChapterId(course.chapters[0].id);
+      }
+    }
+  }, [course, activeChapterId, setActiveChapterId]);
 
 
   const activeChapter = useMemo(
