@@ -1,9 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
-import { SidebarProvider } from '@/components/ui/sidebar';
 import { Toaster } from '@/components/ui/toaster';
-import { SidebarNav } from '@/components/layout/sidebar-nav';
 import { Header } from '@/components/layout/header';
 import { PageNav } from '@/components/layout/page-nav';
 
@@ -36,14 +34,11 @@ export default function RootLayout({
         />
       </head>
       <body className={cn('font-body antialiased min-h-screen w-full bg-background text-foreground')}>
-        <SidebarProvider>
-          <SidebarNav />
-          <main className="flex min-h-svh flex-1 flex-col bg-background md:peer-data-[state=expanded]:peer-data-[variant=sidebar]:pl-[--sidebar-width] md:peer-data-[state=collapsed]:peer-data-[variant=sidebar]:pl-[--sidebar-width-icon]">
+          <main className="flex min-h-svh flex-1 flex-col bg-background">
             <Header />
             <PageNav />
             <div className="flex-1 p-4 sm:p-6 lg:p-8">{children}</div>
           </main>
-        </SidebarProvider>
         <Toaster />
       </body>
     </html>
