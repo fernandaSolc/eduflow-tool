@@ -20,6 +20,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
   );
 
   const fetchCourseData = useCallback(async () => {
+    if (!courseId) return;
     setLoading(true);
     setError(null);
     try {
@@ -34,6 +35,8 @@ export default function CoursePage({ params }: { params: { id: string } }) {
               if (!activeChapterId || !chapterExists) {
                 setActiveChapterId(fetchedCourse.chapters[0].id);
               }
+            } else if (activeChapterId) {
+                setActiveChapterId(null);
             }
         }
     } catch (err) {
@@ -47,9 +50,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
 
 
   useEffect(() => {
-    if (courseId) {
-      fetchCourseData();
-    }
+    fetchCourseData();
   }, [courseId, fetchCourseData]);
 
   const activeChapter = useMemo(
@@ -70,12 +71,16 @@ export default function CoursePage({ params }: { params: { id: string } }) {
     fetchCourseData(); // Just refetch the data to get the latest version
   };
 
-  if (loading || !course) {
-    let message = 'Carregando curso...';
-    if(error) message = error;
-    if(!loading && !course && !error) message = 'Curso não encontrado.';
+  if (loading) {
+    return <div className="text-center p-8">Carregando curso...</div>;
+  }
+  
+  if (error) {
+    return <div className="text-center p-8 text-destructive">{error}</div>;
+  }
 
-    return <div className="text-center p-8">{message}</div>;
+  if (!course) {
+    return <div className="text-center p-8">Curso não encontrado.</div>;
   }
 
   return (

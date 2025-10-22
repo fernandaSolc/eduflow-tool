@@ -1,3 +1,4 @@
+
 import { API_CONFIG } from '@/lib/api-config';
 import type { Course } from './definitions';
 
@@ -67,7 +68,11 @@ export class BackendService {
     try {
         return JSON.parse(text);
     } catch (e) {
-        return text as any;
+        if (text) {
+          // Sometimes the service returns a plain string for errors.
+          throw new Error(text);
+        }
+        return {} as T;
     }
   }
 

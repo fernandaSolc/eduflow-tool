@@ -11,12 +11,19 @@ import type { Course } from '@/lib/definitions';
 export default function Home() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string|null>(null);
 
   useEffect(() => {
     async function loadCourses() {
       setLoading(true);
-      const fetchedCourses = await getCourses();
-      setCourses(fetchedCourses);
+      setError(null);
+      try {
+        const fetchedCourses = await getCourses();
+        setCourses(fetchedCourses);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Falha ao carregar cursos.');
+        console.error(err);
+      }
       setLoading(false);
     }
     loadCourses();
@@ -59,9 +66,13 @@ export default function Home() {
             </div>
         </div>
         {loading ? (
-           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+           <div className="mt-8">
              <p className="text-muted-foreground">Carregando cursos...</p>
            </div>
+        ) : error ? (
+            <div className="mt-8 text-destructive">
+                <p>Ocorreu um erro ao carregar os cursos: {error}</p>
+            </div>
         ) : (
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {courses.map((course) => (
