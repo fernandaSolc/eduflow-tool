@@ -46,7 +46,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
 
   return (
     <div className="flex h-[calc(100vh-8.5rem)] -m-4 sm:-m-6 lg:-m-8">
-      <aside className="h-full w-full max-w-xs border-r border-border bg-muted/20">
+      <aside className="h-full w-full max-w-sm border-r border-border bg-card/50">
         <ChapterList
           course={course}
           activeChapterId={activeChapterId}
