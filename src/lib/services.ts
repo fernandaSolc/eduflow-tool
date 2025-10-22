@@ -29,8 +29,8 @@ export class BackendService {
   private apiKey: string;
 
   constructor() {
-    this.baseURL = API_CONFIG.BACKEND.BASE_URL;
-    this.apiKey = API_CONFIG.BACKEND.API_KEY;
+    this.baseURL = process.env.BACKEND_URL || 'http://localhost:3007/api';
+    this.apiKey = process.env.BACKEND_API_KEY || 'dev-api-key-123';
   }
 
   private async makeRequest<T>(

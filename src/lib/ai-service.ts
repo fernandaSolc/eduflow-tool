@@ -27,8 +27,8 @@ export class AIService {
   private apiKey: string;
 
   constructor() {
-    this.baseURL = API_CONFIG.AI_SERVICE.BASE_URL;
-    this.apiKey = API_CONFIG.AI_SERVICE.API_KEY;
+    this.baseURL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localhost:3005';
+    this.apiKey = process.env.AI_SERVICE_API_KEY || 'test-api-key-123';
   }
 
   private async makeRequest<T>(
