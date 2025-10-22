@@ -24,7 +24,7 @@ export function ChapterList({
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col bg-card">
       <header className="flex items-center justify-between border-b border-border p-4">
         <h2 className="font-headline text-lg font-semibold truncate pr-4">{course.title}</h2>
         <NewChapterForm
@@ -43,18 +43,21 @@ export function ChapterList({
         <nav className="p-2">
           {course.chapters && course.chapters.length > 0 ? (
             <ul className="space-y-1">
-              {course.chapters.map((chapter) => (
+              {course.chapters.map((chapter, index) => (
                 <li key={chapter.id}>
                   <button
                     onClick={() => onChapterSelect(chapter.id)}
                     className={cn(
-                      'w-full rounded-md p-3 text-left text-sm transition-colors',
+                      'w-full rounded-md p-3 text-left text-sm transition-colors flex items-start gap-4',
                       chapter.id === activeChapterId
                         ? 'bg-primary/10 text-primary font-semibold'
-                        : 'hover:bg-primary/5 text-muted-foreground hover:text-foreground'
+                        : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
                     )}
                   >
-                    {chapter.title}
+                    <span className={cn("text-base font-bold", chapter.id === activeChapterId ? 'text-primary' : 'text-muted-foreground/80' )}>
+                        {index + 1}
+                    </span>
+                    <span className="flex-1">{chapter.title}</span>
                   </button>
                 </li>
               ))}
@@ -62,7 +65,7 @@ export function ChapterList({
           ) : (
             <div className="p-8 text-center text-sm text-muted-foreground">
               <p className="mb-4">Nenhum capítulo foi criado ainda.</p>
-              <Button onClick={() => setIsModalOpen(true)}>
+              <Button onClick={() => setIsModalOpen(true)} size="sm">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Criar Primeiro Capítulo
               </Button>

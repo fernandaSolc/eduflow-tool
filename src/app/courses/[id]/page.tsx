@@ -11,6 +11,7 @@ import { useLocalStorage } from '@/hooks/use-local-storage';
 export default function CoursePage({ params }: { params: { id: string } }) {
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [activeChapterId, setActiveChapterId] = useLocalStorage<string | null>(
     `activeChapter_${params.id}`,
@@ -19,37 +20,34 @@ export default function CoursePage({ params }: { params: { id: string } }) {
 
   const fetchCourseData = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
         const fetchedCourse = await getCourseById(params.id);
         if (!fetchedCourse) {
             notFound();
         } else {
             setCourse(fetchedCourse);
+             // Auto-select first chapter if no chapter is active or the active one is not in the list
+            if (fetchedCourse.chapters && fetchedCourse.chapters.length > 0) {
+              const chapterExists = fetchedCourse.chapters.some(c => c.id === activeChapterId);
+              if (!activeChapterId || !chapterExists) {
+                setActiveChapterId(fetchedCourse.chapters[0].id);
+              }
+            }
         }
-    } catch (error) {
-        console.error("Failed to fetch course data:", error);
-        // Optionally, set an error state to show in the UI
+    } catch (err) {
+        console.error("Failed to fetch course data:", err);
+        setError(err instanceof Error ? err.message : 'Falha ao carregar os dados do curso.');
         setCourse(null);
     } finally {
         setLoading(false);
     }
-  }, [params.id]);
+  }, [params.id, activeChapterId, setActiveChapterId]);
+
 
   useEffect(() => {
     fetchCourseData();
-  }, [fetchCourseData]);
-
-  // Effect to manage the active chapter, runs only when course data changes
-  useEffect(() => {
-    if (course && course.chapters && course.chapters.length > 0) {
-      const chapterExists = course.chapters.some(c => c.id === activeChapterId);
-      // Auto-select first chapter if no chapter is active or the active one is not in the list
-      if (!activeChapterId || !chapterExists) {
-        setActiveChapterId(course.chapters[0].id);
-      }
-    }
-  }, [course, activeChapterId, setActiveChapterId]);
-
+  }, [params.id]); // Removed fetchCourseData from dependency array to prevent loops
 
   const activeChapter = useMemo(
     () => course?.chapters?.find((c) => c.id === activeChapterId),
@@ -60,23 +58,26 @@ export default function CoursePage({ params }: { params: { id: string } }) {
     setActiveChapterId(chapterId);
   };
 
-  const handleAddChapter = async (newChapter: Chapter) => {
-    await fetchCourseData();
+  const handleAddChapter = (newChapter: Chapter) => {
+    fetchCourseData(); // Refetch course data to include the new chapter
     setActiveChapterId(newChapter.id);
   };
 
-  const handleUpdateChapter = useCallback(async () => {
-    // Just refetch the data to get the latest version
-    await fetchCourseData();
-  }, [fetchCourseData]);
+  const handleUpdateChapter = () => {
+    fetchCourseData(); // Just refetch the data to get the latest version
+  };
 
   if (loading || !course) {
-    return <div className="text-center p-8">Carregando curso...</div>;
+    let message = 'Carregando curso...';
+    if(error) message = error;
+    if(!loading && !course && !error) message = 'Curso não encontrado.';
+
+    return <div className="text-center p-8">{message}</div>;
   }
 
   return (
     <div className="flex h-[calc(100vh-8.5rem)] -m-4 sm:-m-6 lg:-m-8">
-      <aside className="h-full w-full max-w-sm border-r border-border bg-card/50">
+      <aside className="h-full w-full max-w-xs border-r border-border">
         <ChapterList
           course={course}
           activeChapterId={activeChapterId}
