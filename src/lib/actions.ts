@@ -9,8 +9,29 @@ export async function createCourseAction(
   values: Omit<Course, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'chapters'>
 ) {
   try {
+    // 1. Criar o curso base no backend
     const { data: newCourse } = await backendService.createCourse(values);
+
+    // 2. Usar o AI Service para gerar os capítulos iniciais (simulando uma chamada)
+    // Em um cenário real, você poderia ter um endpoint no AI Service para isso.
+    // Aqui, vamos gerar o primeiro capítulo como exemplo.
+    const chapterInput: CreateChapterRequest = {
+      courseId: newCourse.id,
+      courseTitle: newCourse.title,
+      courseDescription: newCourse.description,
+      subject: newCourse.subject,
+      educationalLevel: newCourse.educationalLevel,
+      targetAudience: newCourse.targetAudience,
+      template: newCourse.template,
+      philosophy: newCourse.philosophy,
+      chapterNumber: 1,
+      additionalContext: `Título do Capítulo: Introdução\n\nInstruções: Gere um capítulo introdutório para o curso.`
+    };
+    await aiService.createChapter(chapterInput);
+    
     revalidatePath('/');
+    revalidatePath(`/courses/${newCourse.id}`);
+    
     return { success: true, data: newCourse };
   } catch (error) {
     console.error('Erro ao criar curso:', error);

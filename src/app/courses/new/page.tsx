@@ -58,7 +58,7 @@ export default function NewCoursePage() {
     if (result.success && result.data) {
       toast({
         title: 'Curso Criado com Sucesso!',
-        description: `O curso "${result.data.title}" foi criado.`,
+        description: `O curso "${result.data.title}" foi criado e a IA já gerou o conteúdo inicial.`,
       });
       router.push(`/courses/${result.data.id}`);
     } else {
@@ -76,7 +76,7 @@ export default function NewCoursePage() {
         <CardHeader>
           <CardTitle className="font-headline text-2xl">Criar Novo Curso</CardTitle>
           <CardDescription>
-            Preencha os detalhes abaixo para criar um novo curso. A IA usará essas informações para gerar o conteúdo.
+            Preencha os detalhes abaixo. A IA usará essas informações para criar o curso e gerar os capítulos iniciais.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -195,7 +195,7 @@ export default function NewCoursePage() {
                   ) : (
                     <Sparkles className="mr-2 h-4 w-4" />
                   )}
-                  Criar Curso e Ir para Capítulos
+                  Criar Curso com IA
                 </Button>
               </div>
             </form>
