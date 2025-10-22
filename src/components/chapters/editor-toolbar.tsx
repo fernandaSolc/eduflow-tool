@@ -1,11 +1,11 @@
 'use client';
 
-import { Bot, Pencil, Sparkles, StretchHorizontal, Mic } from 'lucide-react';
+import { Bot, Pencil, StretchHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 type EditorToolbarProps = {
   selection: string;
-  onAction: (action: string, selection: string) => void;
+  onAction: (action: 'edit' | 'ai-expand' | 'ai-simplify', selection: string) => void;
 };
 
 export function EditorToolbar({ selection, onAction }: EditorToolbarProps) {
@@ -25,10 +25,6 @@ export function EditorToolbar({ selection, onAction }: EditorToolbarProps) {
         <Button variant="ghost" size="sm" onClick={() => onAction('ai-simplify', selection)}>
           <Bot className="mr-2 h-4 w-4" />
           Simplificar com IA
-        </Button>
-        <Button variant="ghost" size="sm" onClick={() => onAction('voice', selection)}>
-          <Mic className="mr-2 h-4 w-4" />
-          Editar por Voz
         </Button>
       </div>
     </div>
