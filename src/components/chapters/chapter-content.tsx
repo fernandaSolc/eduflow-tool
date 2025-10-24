@@ -2,7 +2,7 @@
 
 import type { Course, Chapter } from '@/lib/definitions';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { BookText, Pencil, ImagePlus } from 'lucide-react';
+import { BookText, Pencil } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { EditorToolbar } from './editor-toolbar';
 import { AiActionForm } from './ai-action-form';
@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { expandChapterAction, simplifyChapterAction, updateChapterContentAction } from '@/lib/actions';
+import { expandChapterAction, simplifyChapterAction, updateChapterContentAction, generateQuestionAction, createExampleAction } from '@/lib/actions';
 import { Loader2 } from 'lucide-react';
 import { ImagePlaceholderDialog } from './image-placeholder-dialog';
 
@@ -20,7 +20,7 @@ type ChapterContentProps = {
   onUpdateChapter: () => void;
 };
 
-type ToolbarAction = 'edit' | 'ai-expand' | 'ai-simplify' | 'insert-image';
+type ToolbarAction = 'edit' | 'ai-expand' | 'ai-simplify' | 'insert-image' | 'ai-question' | 'ai-example';
 
 export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterContentProps) {
   const { toast } = useToast();
@@ -113,20 +113,38 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
     const values = { selection: cleanSelection, additionalDetails: prompt };
 
     try {
-      if (popoverAction === 'ai-expand') {
-        result = await expandChapterAction(course.id, chapter.id, values);
-      } else if (popoverAction === 'ai-simplify') {
-        result = await simplifyChapterAction(course.id, chapter.id, values);
-      }
+        let actionResponse;
+        let toastTitle = 'Ação Concluída';
 
-      if (result?.success) {
+        switch (popoverAction) {
+            case 'ai-expand':
+                actionResponse = await expandChapterAction(course.id, chapter.id, values);
+                toastTitle = 'Capítulo Expandido!';
+                break;
+            case 'ai-simplify':
+                actionResponse = await simplifyChapterAction(course.id, chapter.id, values);
+                toastTitle = 'Capítulo Simplificado!';
+                break;
+            case 'ai-question':
+                actionResponse = await generateQuestionAction(course.id, chapter.id, values);
+                toastTitle = 'Questão Gerada!';
+                break;
+            case 'ai-example':
+                actionResponse = await createExampleAction(course.id, chapter.id, values);
+                toastTitle = 'Exemplo Criado!';
+                break;
+            default:
+                throw new Error('Ação de IA desconhecida.');
+        }
+
+      if (actionResponse?.success) {
         toast({
-          title: `Capítulo ${popoverAction === 'ai-expand' ? 'Expandido' : 'Simplificado'}!`,
-          description: "O conteúdo foi atualizado com sucesso.",
+          title: toastTitle,
+          description: "O conteúdo foi atualizado com a resposta da IA.",
         });
         onUpdateChapter();
       } else {
-        throw new Error(result?.error || 'Uma falha desconhecida ocorreu');
+        throw new Error(actionResponse?.error || 'Uma falha desconhecida ocorreu');
       }
     } catch (error) {
        toast({
@@ -329,12 +347,14 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
         );
     }
 
-    const isExpand = popoverAction === 'ai-expand';
-    const title = isExpand ? 'Expandir com IA' : 'Simplificar com IA';
-    const placeholder = isExpand 
-      ? 'Ex: Adicione mais detalhes sobre o impacto histórico...' 
-      : 'Ex: Simplifique para um público iniciante...';
-    const buttonText = isExpand ? 'Expandir' : 'Simplificar';
+    const config = {
+        'ai-expand': { title: 'Expandir com IA', placeholder: 'Ex: Adicione mais detalhes sobre o impacto histórico...', buttonText: 'Expandir' },
+        'ai-simplify': { title: 'Simplificar com IA', placeholder: 'Ex: Simplifique para um público iniciante...', buttonText: 'Simplificar' },
+        'ai-question': { title: 'Gerar Questão com IA', placeholder: 'Ex: Crie uma questão de múltipla escolha...', buttonText: 'Gerar Questão' },
+        'ai-example': { title: 'Criar Exemplo com IA', placeholder: 'Ex: Gere um exemplo prático sobre este conceito...', buttonText: 'Criar Exemplo' },
+    };
+
+    const { title, placeholder, buttonText } = config[popoverAction as keyof typeof config] || {};
     
     return (
         <AiActionForm

@@ -127,6 +127,62 @@ export async function simplifyChapterAction(
   }
 }
 
+export async function generateQuestionAction(
+  courseId: string,
+  chapterId: string,
+  values: {
+    selection: string;
+    additionalDetails?: string;
+  }
+) {
+  try {
+    const context = `Gere uma questão de avaliação (múltipla escolha ou dissertativa) sobre o seguinte trecho: "${values.selection}".\nInstruções adicionais: ${values.additionalDetails || 'Nenhuma.'}`;
+    const updatedChapter = await aiService.continueChapter(
+        chapterId, 
+        'assess', 
+        context
+    );
+
+    revalidatePath(`/courses/${courseId}`);
+    return {
+      success: true,
+      data: updatedChapter,
+    };
+  } catch (error) {
+    console.error('Erro ao gerar questão:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Falha ao gerar questão.';
+    return { success: false, error: errorMessage };
+  }
+}
+
+export async function createExampleAction(
+  courseId: string,
+  chapterId: string,
+  values: {
+    selection: string;
+    additionalDetails?: string;
+  }
+) {
+  try {
+    const context = `Crie um exemplo prático, uma analogia ou um estudo de caso sobre o seguinte conceito: "${values.selection}".\nInstruções adicionais: ${values.additionalDetails || 'Nenhuma.'}`;
+    const updatedChapter = await aiService.continueChapter(
+        chapterId, 
+        'exemplify', 
+        context
+    );
+
+    revalidatePath(`/courses/${courseId}`);
+    return {
+      success: true,
+      data: updatedChapter,
+    };
+  } catch (error) {
+    console.error('Erro ao criar exemplo:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Falha ao criar exemplo.';
+    return { success: false, error: errorMessage };
+  }
+}
+
 
 export async function enrichChapterAction(
   chapter: Chapter,

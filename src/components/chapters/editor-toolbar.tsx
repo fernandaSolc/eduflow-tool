@@ -1,11 +1,11 @@
 'use client';
 
-import { Bot, Pencil, StretchHorizontal, ImagePlus } from 'lucide-react';
+import { Bot, Pencil, StretchHorizontal, ImagePlus, HelpCircle, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 type EditorToolbarProps = {
   selection: string;
-  onAction: (action: 'edit' | 'ai-expand' | 'ai-simplify' | 'insert-image', selection: string) => void;
+  onAction: (action: 'edit' | 'ai-expand' | 'ai-simplify' | 'insert-image' | 'ai-question' | 'ai-example', selection: string) => void;
 };
 
 export function EditorToolbar({ selection, onAction }: EditorToolbarProps) {
@@ -24,6 +24,14 @@ export function EditorToolbar({ selection, onAction }: EditorToolbarProps) {
       <Button variant="ghost" size="sm" onClick={() => onAction('ai-simplify', selection)}>
         <Bot className="mr-2 h-4 w-4" />
         Simplificar com IA
+      </Button>
+       <Button variant="ghost" size="sm" onClick={() => onAction('ai-example', selection)}>
+        <Lightbulb className="mr-2 h-4 w-4" />
+        Criar Exemplo
+      </Button>
+       <Button variant="ghost" size="sm" onClick={() => onAction('ai-question', selection)}>
+        <HelpCircle className="mr-2 h-4 w-4" />
+        Gerar Questão
       </Button>
        <Button variant="ghost" size="sm" onClick={() => onAction('insert-image', selection)}>
         <ImagePlus className="mr-2 h-4 w-4" />
