@@ -6,25 +6,23 @@ const mockChapters: Chapter[] = [
     courseId: 'mock-course-1',
     chapterNumber: 1,
     title: 'Capítulo 1: A Revolução da IA na Educação',
-    content: `
-      <h2>O Início de Uma Nova Era</h2>
-      <p>A inteligência artificial (IA) está rapidamente se tornando uma das tecnologias mais transformadoras do nosso tempo. No setor educacional, seu impacto é particularmente profundo, prometendo personalizar o aprendizado, automatizar tarefas administrativas e fornecer insights valiosos para educadores.</p>
-      <p>Neste capítulo, exploraremos os conceitos fundamentais da IA e como eles se aplicam ao contexto da criação de conteúdo didático. Vamos desmistificar termos como <em>Machine Learning</em>, <em>Natural Language Processing (NLP)</em> e <em>Generative AI</em>.</p>
-      <br />
-      <h3>Principais Conceitos</h3>
-      <ul>
-        <li><strong>Machine Learning:</strong> A capacidade de um sistema aprender e melhorar a partir da experiência sem ser explicitamente programado.</li>
-        <li><strong>Natural Language Processing (NLP):</strong> A área da IA focada em permitir que computadores entendam, interpretem e gerem linguagem humana.</li>
-        <li><strong>Generative AI:</strong> Modelos de IA capazes de criar novo conteúdo, como texto, imagens ou música, com base nos dados com os quais foram treinados.</li>
-      </ul>
-      <br/>
-      <pre><code>// Exemplo de como uma IA generativa pode ser instruída:
-const prompt = "Explique o processo de fotossíntese para uma criança de 10 anos.";
-const resultado = ai.gerarTexto(prompt);
-console.log(resultado);
-</code></pre>
-      <br/>
-      <p>A adoção dessas tecnologias não está isenta de desafios. Questões éticas, como o viés nos dados de treinamento e a privacidade dos alunos, são de suma importância e serão discutidas ao longo deste curso.</p>
+    content: `<h2>O Início de Uma Nova Era</h2>
+<p>A inteligência artificial (IA) está rapidamente se tornando uma das tecnologias mais transformadoras do nosso tempo. No setor educacional, seu impacto é particularmente profundo, prometendo personalizar o aprendizado, automatizar tarefas administrativas e fornecer insights valiosos para educadores.</p>
+<p>Neste capítulo, exploraremos os conceitos fundamentais da IA e como eles se aplicam ao contexto da criação de conteúdo didático. Vamos desmistificar termos como <em>Machine Learning</em>, <em>Natural Language Processing (NLP)</em> e <em>Generative AI</em>.</p>
+<br />
+<h3>Principais Conceitos</h3>
+<ul>
+<li><strong>Machine Learning:</strong> A capacidade de um sistema aprender e melhorar a partir da experiência sem ser explicitamente programado.</li>
+<li><strong>Natural Language Processing (NLP):</strong> A área da IA focada em permitir que computadores entendam, interpretem e gerem linguagem humana.</li>
+<li><strong>Generative AI:</strong> Modelos de IA capazes de criar novo conteúdo, como texto, imagens ou música, com base nos dados com os quais foram treinados.</li>
+</ul>
+<br/>
+<div class="image-placeholder" contenteditable="false" data-image-description="Um diagrama mostrando a relação entre IA, Machine Learning e NLP.">
+  <div class="placeholder-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></div>
+  <div class="placeholder-text"><strong>Imagem Sugerida:</strong><p>Um diagrama mostrando a relação entre IA, Machine Learning e NLP.</p></div>
+</div>
+<br/>
+<p>A adoção dessas tecnologias não está isenta de desafios. Questões éticas, como o viés nos dados de treinamento e a privacidade dos alunos, são de suma importância e serão discutidas ao longo deste curso.</p>
     `,
     sections: [],
     status: 'gerado',
@@ -58,7 +56,6 @@ console.log(resultado);
       <p>O segredo para um uso eficaz é a colaboração homem-máquina. A IA é uma copiloto poderosa, mas a visão pedagógica e a expertise do educador são insubstituíveis. O objetivo não é substituir o criador, mas sim aumentar sua capacidade e eficiência.</p>
       <br />
       <h3>Boas Práticas</h3>
-      <p>Ao usar uma ferramenta de IA para edição, lembre-se de:</p>
       <ol>
         <li><strong>Fornecer contexto claro:</strong> Quanto mais específica for sua instrução (prompt), melhor será o resultado.</li>
         <li><strong>Revisar e refinar:</strong> Sempre revise o conteúdo gerado para garantir precisão, adequação e alinhamento com seus objetivos pedagógicos.</li>
