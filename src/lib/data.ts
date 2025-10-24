@@ -37,10 +37,8 @@ export const getCourseById = async (id: string): Promise<Course | undefined> => 
     //     return undefined;
     // }
     console.log(`Usando dados mocados para getCourseById com id: ${id}`);
-    if (id === 'mock-course-1') {
-        return Promise.resolve(mockCourse);
-    }
-    return Promise.resolve(undefined);
+    const course = mockCourses.find(c => c.id === id);
+    return Promise.resolve(course);
 }
 
 export async function addChapterToCourse(courseId: string, chapter: Chapter) {
@@ -59,12 +57,12 @@ export async function addChapterToCourse(courseId: string, chapter: Chapter) {
     }
 }
 
-export async function updateChapterContent(courseId: string, chapterId: string, newContent: string) {
+export async function updateChapterContent(courseId: string, chapterId: string, oldContent: string, newContent: string) {
     if (courseId !== 'mock-course-1' || !mockCourse.chapters) return;
     
     const chapter = mockCourse.chapters.find(c => c.id === chapterId);
     if (chapter) {
-        chapter.content = newContent;
+        chapter.content = chapter.content.replace(oldContent, newContent);
     }
 }
 
