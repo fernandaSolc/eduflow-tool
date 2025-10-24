@@ -14,8 +14,8 @@ export function Header() {
       </Link>
       <div className="ml-auto flex items-center gap-4">
         <ThemeToggle />
-        <ServiceStatus serviceName="Serviço de IA" />
-        <ServiceStatus serviceName="Backend" />
+        <ServiceStatus serviceName="Serviço de IA" serviceType="ai" />
+        <ServiceStatus serviceName="Backend" serviceType="backend" />
       </div>
     </header>
   );

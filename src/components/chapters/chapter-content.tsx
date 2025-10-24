@@ -10,7 +10,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { expandChapterAction, simplifyChapterAction } from '@/lib/actions';
+import { expandChapterAction, simplifyChapterAction, updateChapterContentAction } from '@/lib/actions';
+import { Loader2 } from 'lucide-react';
 
 type ChapterContentProps = {
   course: Course;
@@ -26,6 +27,7 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
   const [popoverAction, setPopoverAction] = useState<ToolbarAction | null>(null);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [manualEditContent, setManualEditContent] = useState('');
+  const [isSubmittingManualEdit, setIsSubmittingManualEdit] = useState(false);
 
   const chapterKey = useMemo(() => chapter?.id, [chapter]);
 
@@ -89,13 +91,32 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
   };
 
   const handleManualEditSubmit = async () => {
-    console.log(`Manual Edit:`, manualEditContent);
-    // TODO: Implementar a lógica de encontrar e substituir o texto no conteúdo do capítulo
-    // e salvar usando uma server action.
-    toast({
-      title: "Edição Manual",
-      description: "A funcionalidade de salvar a edição manual será implementada em breve.",
-    });
+    if (!selection || !chapter) return;
+    setIsSubmittingManualEdit(true);
+
+    const result = await updateChapterContentAction(
+      course.id,
+      chapter.id,
+      selection,
+      manualEditContent
+    );
+
+    setIsSubmittingManualEdit(false);
+
+    if (result?.success) {
+      toast({
+        title: "Conteúdo Atualizado",
+        description: "Sua edição foi salva com sucesso.",
+      });
+      onUpdateChapter();
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Erro ao Salvar",
+        description: result?.error || "Não foi possível salvar a sua alteração.",
+      });
+    }
+
     handlePopoverClose();
   }
 
@@ -124,10 +145,14 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
                     value={manualEditContent}
                     onChange={(e) => setManualEditContent(e.target.value)}
                     className="h-48"
+                    disabled={isSubmittingManualEdit}
                 />
                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" onClick={handlePopoverClose}>Cancelar</Button>
-                    <Button onClick={handleManualEditSubmit}>Salvar Alterações</Button>
+                    <Button variant="ghost" onClick={handlePopoverClose} disabled={isSubmittingManualEdit}>Cancelar</Button>
+                    <Button onClick={handleManualEditSubmit} disabled={isSubmittingManualEdit}>
+                      {isSubmittingManualEdit && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Salvar Alterações
+                    </Button>
                 </div>
             </div>
         );

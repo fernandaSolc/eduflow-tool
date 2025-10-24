@@ -164,3 +164,35 @@ export async function enrichChapterAction(
     return { success: false, error: errorMessage };
   }
 }
+
+export async function updateChapterContentAction(
+  courseId: string,
+  chapterId: string,
+  oldContent: string,
+  newContent: string
+) {
+  try {
+    // Busca o capítulo completo para não perder outros dados
+    const { data: chapter } = await backendService.getChapterById(chapterId);
+    if (!chapter) {
+      throw new Error("Capítulo não encontrado.");
+    }
+    
+    // Substitui apenas o trecho editado no conteúdo completo
+    const updatedContent = chapter.content.replace(oldContent, newContent);
+
+    const result = await backendService.updateChapter(chapterId, { content: updatedContent });
+    
+    if (result.success) {
+      revalidatePath(`/courses/${courseId}`);
+      return { success: true, data: result.data };
+    }
+    
+    return { success: false, error: 'Falha ao atualizar capítulo' };
+
+  } catch (error) {
+    console.error('Erro ao atualizar conteúdo do capítulo:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Falha ao atualizar o conteúdo.';
+    return { success: false, error: errorMessage };
+  }
+}

@@ -1,6 +1,5 @@
-
 import { API_CONFIG } from '@/lib/api-config';
-import type { Course } from './definitions';
+import type { Course, Chapter } from './definitions';
 
 export interface CourseFilters {
   page?: number;
@@ -77,7 +76,7 @@ export class BackendService {
   }
 
   async checkHealth(): Promise<{ status: string; timestamp: string }> {
-    return this.makeRequest(API_CONFIG.BACKEND.ENDPOINTS.HEALTH);
+    return this.makeRequest(API_CONFIG.BACKEND.ENDPOINTS.HEALTH, 'GET', null, { cache: 'no-store' });
   }
 
   async getCourses(filters?: CourseFilters): Promise<PaginatedResponse<Course>> {
@@ -117,6 +116,14 @@ export class BackendService {
       courseData
     );
   }
+  
+  async updateChapter(chapterId: string, chapterData: Partial<Chapter>): Promise<{ success: boolean; data: Chapter }> {
+    return this.makeRequest<{ success: boolean; data: Chapter }>(
+      `${API_CONFIG.BACKEND.ENDPOINTS.CHAPTERS}/${chapterId}`,
+      'PUT',
+      chapterData
+    );
+  }
 
   async getCourseChapters(courseId: string): Promise<{ success: boolean; data: any[] }> {
     return this.makeRequest<{ success: boolean; data: any[] }>(
@@ -124,8 +131,8 @@ export class BackendService {
     );
   }
 
-  async getChapterById(chapterId: string): Promise<{ success: boolean; data: any }> {
-    return this.makeRequest<{ success: boolean; data: any }>(
+  async getChapterById(chapterId: string): Promise<{ success: boolean; data: Chapter }> {
+    return this.makeRequest<{ success: boolean; data: Chapter }>(
       `${API_CONFIG.BACKEND.ENDPOINTS.CHAPTERS}/${chapterId}`
     );
   }
