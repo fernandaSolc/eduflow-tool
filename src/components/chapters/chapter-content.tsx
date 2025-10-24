@@ -26,6 +26,7 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
   const { toast } = useToast();
   const contentRef = useRef<HTMLDivElement>(null);
   const [selection, setSelection] = useState<string | null>(null);
+  const [selectionNode, setSelectionNode] = useState<Node | null>(null);
   const [highlightedContent, setHighlightedContent] = useState<string | null>(null);
   const [popoverAction, setPopoverAction] = useState<ToolbarAction | null>(null);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -64,6 +65,7 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
   
     if (selectedText && selectedText.length > 10) {
       const range = sel.getRangeAt(0);
+      setSelectionNode(range.endContainer);
       const clonedRange = range.cloneRange();
       const tempDiv = document.createElement("div");
       tempDiv.appendChild(clonedRange.cloneContents());
@@ -76,6 +78,7 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
       }
     } else {
       setSelection(null);
+      setSelectionNode(null);
       setHighlightedContent(null);
     }
   };
@@ -96,6 +99,7 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
     setIsPopoverOpen(false);
     setPopoverAction(null);
     setSelection(null);
+    setSelectionNode(null);
     setHighlightedContent(null);
   };
   
@@ -142,7 +146,8 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
       course.id,
       chapter.id,
       cleanSelection,
-      manualEditContent
+      manualEditContent,
+      false // is not a point insert
     );
 
     setIsSubmittingManualEdit(false);
@@ -208,7 +213,8 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
       course.id,
       chapter.id,
       chapter.content,
-      newHtmlContent
+      newHtmlContent,
+      true // is full edit
     );
 
     setIsSubmittingFullEdit(false);
@@ -230,7 +236,22 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
   };
   
   const handleImagePlaceholderInsert = async (description: string) => {
-    if (!chapter || !selection) return;
+    if (!chapter || !selectionNode) return;
+  
+    // Find the parent block-level element (e.g., <p>, <h2>) of the selection
+    let parentElement = selectionNode.nodeType === Node.TEXT_NODE ? selectionNode.parentElement : selectionNode as HTMLElement;
+    while (parentElement && !['P', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'LI', 'BLOCKQUOTE', 'DIV'].includes(parentElement.tagName)) {
+        parentElement = parentElement.parentElement;
+    }
+  
+    if (!parentElement) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao Inserir Imagem",
+        description: "Não foi possível encontrar um local válido para inserir a imagem.",
+      });
+      return;
+    }
 
     const placeholderHtml = `
       <div class="image-placeholder" contenteditable="false" data-image-description="${description}">
@@ -244,13 +265,12 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
       </div>
     `;
 
-    const newContent = chapter.content.replace(selection, `${selection}${placeholderHtml}`);
-    
     const result = await updateChapterContentAction(
       course.id,
       chapter.id,
-      chapter.content,
-      newContent
+      parentElement.outerHTML, 
+      parentElement.outerHTML + placeholderHtml,
+      false // Is not full edit
     );
 
     if (result.success) {
@@ -390,3 +410,5 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
     </Popover>
   );
 }
+
+    

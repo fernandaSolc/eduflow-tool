@@ -160,7 +160,8 @@ export async function updateChapterContentAction(
   courseId: string,
   chapterId: string,
   oldContent: string,
-  newContent: string
+  newContent: string,
+  isFullEdit: boolean
 ) {
   try {
     const { data: chapter } = await backendService.getChapterById(chapterId);
@@ -168,7 +169,6 @@ export async function updateChapterContentAction(
       throw new Error("Capítulo não encontrado.");
     }
     
-    const isFullEdit = oldContent === chapter.content;
     const updatedContent = isFullEdit ? newContent : chapter.content.replace(oldContent, newContent);
 
     const result = await backendService.updateChapter(chapterId, { content: updatedContent });
@@ -186,3 +186,5 @@ export async function updateChapterContentAction(
     return { success: false, error: errorMessage };
   }
 }
+
+    
