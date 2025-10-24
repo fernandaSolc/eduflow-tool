@@ -9,12 +9,8 @@ export async function createCourseAction(
   values: Omit<Course, 'id' | 'createdAt' | 'updatedAt' | 'status' | 'chapters'>
 ) {
   try {
-    // 1. Criar o curso base no backend
     const { data: newCourse } = await backendService.createCourse(values);
 
-    // 2. Usar o AI Service para gerar os capítulos iniciais (simulando uma chamada)
-    // Em um cenário real, você poderia ter um endpoint no AI Service para isso.
-    // Aqui, vamos gerar o primeiro capítulo como exemplo.
     const chapterInput: CreateChapterRequest = {
       courseId: newCourse.id,
       courseTitle: newCourse.title,
@@ -82,12 +78,11 @@ export async function expandChapterAction(
   }
 ) {
   try {
-    // Monta um contexto mais rico para a IA
     const context = `Expanda o seguinte trecho de texto: "${values.selection}".\nInstruções adicionais: ${values.additionalDetails || 'Nenhuma.'}`;
 
     const updatedChapter = await aiService.continueChapter(
         chapterId, 
-        'expand', // Ação de expansão
+        'expand', 
         context
     );
 
@@ -113,11 +108,7 @@ export async function simplifyChapterAction(
   }
 ) {
   try {
-    // Monta um contexto mais rico para a IA
     const context = `Simplifique o seguinte trecho de texto: "${values.selection}".\nInstruções adicionais: ${values.additionalDetails || 'Nenhuma.'}`;
-
-    // Reutilizando o `continueChapter` com um tipo de ação diferente
-    // O AI Service precisará saber como lidar com 'simplify'
     const updatedChapter = await aiService.continueChapter(
         chapterId, 
         'simplify', 
@@ -146,7 +137,7 @@ export async function enrichChapterAction(
   try {
     const updatedChapter = await aiService.continueChapter(
         chapter.id, 
-        'expand', // Ação de enriquecer pode ser mapeada para expandir com um contexto específico
+        'expand',
         `Enriquecer o seguinte conteúdo com base na consulta do usuário: "${values.userQuery}". Conteúdo existente: "${chapter.content}"`
     );
     
@@ -155,7 +146,7 @@ export async function enrichChapterAction(
       success: true,
       data: {
         ...updatedChapter,
-        aiUsed: true // Assumindo que o serviço de IA foi usado
+        aiUsed: true
       },
     };
   } catch (error) {
@@ -172,14 +163,13 @@ export async function updateChapterContentAction(
   newContent: string
 ) {
   try {
-    // Busca o capítulo completo para não perder outros dados
     const { data: chapter } = await backendService.getChapterById(chapterId);
     if (!chapter) {
       throw new Error("Capítulo não encontrado.");
     }
     
-    // Substitui apenas o trecho editado no conteúdo completo
-    const updatedContent = chapter.content.replace(oldContent, newContent);
+    const isFullEdit = oldContent === chapter.content;
+    const updatedContent = isFullEdit ? newContent : chapter.content.replace(oldContent, newContent);
 
     const result = await backendService.updateChapter(chapterId, { content: updatedContent });
     

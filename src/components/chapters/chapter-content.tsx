@@ -2,7 +2,7 @@
 
 import type { Course, Chapter } from '@/lib/definitions';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { BookText } from 'lucide-react';
+import { BookText, Pencil } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { EditorToolbar } from './editor-toolbar';
 import { AiActionForm } from './ai-action-form';
@@ -28,13 +28,21 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
   const [highlightedContent, setHighlightedContent] = useState<string | null>(null);
   const [popoverAction, setPopoverAction] = useState<ToolbarAction | null>(null);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  
+  // State for full edit mode
+  const [isEditing, setIsEditing] = useState(false);
+  const [fullEditContent, setFullEditContent] = useState('');
+  const [isSubmittingFullEdit, setIsSubmittingFullEdit] = useState(false);
+
+  // State for snippet edit mode
   const [manualEditContent, setManualEditContent] = useState('');
   const [isSubmittingManualEdit, setIsSubmittingManualEdit] = useState(false);
 
   // Reset state when chapter changes
   useEffect(() => {
-    handlePopoverClose(); // Close any open popovers
-    setHighlightedContent(null); // Clear highlights
+    handlePopoverClose();
+    setHighlightedContent(null);
+    setIsEditing(false); // Exit edit mode on chapter change
   }, [chapter?.id]);
 
 
@@ -45,7 +53,7 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
   }
   
   const handleMouseUp = () => {
-    if (isPopoverOpen || !contentRef.current) return;
+    if (isPopoverOpen || isEditing || !contentRef.current) return;
   
     const sel = window.getSelection();
     const selectedText = sel?.toString().trim();
@@ -58,7 +66,6 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
       const selectedHtml = tempDiv.innerHTML;
 
       if(chapter) {
-         // Create a regex that is more robust to HTML tags inside the selection
          const pattern = selectedText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').split(/\s+/).join('\\s+(<[^>]+>\\s*)*');
          const regex = new RegExp(pattern, 'i');
          const originalContent = getCleanedHtml(chapter.content);
@@ -67,9 +74,8 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
          if (match) {
             const highlighted = originalContent.replace(match[0], `<mark>${match[0]}</mark>`);
             setHighlightedContent(highlighted);
-            setSelection(match[0]); // Store the exact matched HTML
+            setSelection(match[0]);
          } else {
-             // Fallback for plain text
             const highlighted = originalContent.replace(selectedText, `<mark>${selectedText}</mark>`);
             setHighlightedContent(highlighted);
             setSelection(selectedText);
@@ -161,6 +167,63 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
     handlePopoverClose();
   }
 
+  const handleEnterEditMode = () => {
+    if (!chapter) return;
+    // Convert HTML to plain text for Textarea
+    const plainText = chapter.content
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<p>/gi, '')
+      .replace(/<\/p>/gi, '\n\n')
+      .replace(/<h2>/gi, '## ')
+      .replace(/<\/h2>/gi, '\n')
+      .replace(/<h3>/gi, '### ')
+      .replace(/<\/h3>/gi, '\n')
+      .replace(/<li>/gi, '- ')
+      .replace(/<\/li>/gi, '\n')
+      .replace(/<[^>]+>/g, ''); // Strip remaining tags
+    setFullEditContent(plainText.trim());
+    setIsEditing(true);
+  };
+
+  const handleFullEditSave = async () => {
+    if (!chapter) return;
+    setIsSubmittingFullEdit(true);
+
+    // Convert plain text back to simple HTML
+    const newHtmlContent = fullEditContent
+      .replace(/## (.*)/g, '<h2>$1</h2>')
+      .replace(/### (.*)/g, '<h3>$1</h3>')
+      .split('\n')
+      .map(line => line.trim() ? `<p>${line}</p>` : '<br />')
+      .join('');
+      
+    // Using updateChapterContentAction to replace the whole content
+    const result = await updateChapterContentAction(
+      course.id,
+      chapter.id,
+      chapter.content, // Old content to be replaced
+      newHtmlContent // New full content
+    );
+
+    setIsSubmittingFullEdit(false);
+
+    if (result.success) {
+      toast({
+        title: "Capítulo Salvo!",
+        description: "O conteúdo foi atualizado com sucesso.",
+      });
+      onUpdateChapter();
+      setIsEditing(false);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Erro ao Salvar",
+        description: result?.error || "Não foi possível salvar o capítulo.",
+      });
+    }
+  };
+
+
   if (!chapter) {
     return (
       <div className="flex h-full flex-col items-center justify-center p-8 text-center bg-background">
@@ -223,18 +286,46 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
 
   return (
     <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-        <ScrollArea className="h-full bg-background" onMouseUp={handleMouseUp}>
+        <ScrollArea className="h-full bg-background">
         <div ref={contentRef} className="p-4 sm:p-6 lg:p-12 prose prose-lg dark:prose-invert max-w-4xl mx-auto prose-headings:font-headline prose-code:font-code prose-code:bg-muted prose-code:p-1 prose-code:rounded">
-            <header className="not-prose mb-12">
-            <h1 className="font-headline text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-                {chapter.title}
-            </h1>
+            <header className="not-prose mb-12 flex justify-between items-start">
+              <div>
+                <h1 className="font-headline text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl mb-0">
+                    {chapter.title}
+                </h1>
+              </div>
+              {!isEditing && (
+                <Button variant="outline" size="sm" onClick={handleEnterEditMode}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Editar
+                </Button>
+              )}
             </header>
 
-            <div dangerouslySetInnerHTML={{ __html: finalHtml }} />
+            {isEditing ? (
+              <div className="not-prose space-y-4">
+                <Textarea 
+                  value={fullEditContent}
+                  onChange={(e) => setFullEditContent(e.target.value)}
+                  className="h-[calc(100vh-30rem)] min-h-[20rem] text-base"
+                  disabled={isSubmittingFullEdit}
+                />
+                <div className="flex justify-end gap-2">
+                  <Button variant="ghost" onClick={() => setIsEditing(false)} disabled={isSubmittingFullEdit}>Cancelar</Button>
+                  <Button onClick={handleFullEditSave} disabled={isSubmittingFullEdit}>
+                    {isSubmittingFullEdit && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Salvar Alterações
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div onMouseUp={handleMouseUp}>
+                <div dangerouslySetInnerHTML={{ __html: finalHtml }} />
+              </div>
+            )}
             
         </div>
-        {selection && !isPopoverOpen && (
+        {selection && !isPopoverOpen && !isEditing && (
              <PopoverTrigger asChild>
                 <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50">
                     <EditorToolbar selection={selection} onAction={handleToolbarAction} />
