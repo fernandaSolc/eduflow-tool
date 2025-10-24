@@ -3,7 +3,7 @@
 import type { Course, Chapter } from '@/lib/definitions';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BookText } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { EditorToolbar } from './editor-toolbar';
 import { AiActionForm } from './ai-action-form';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -23,31 +23,69 @@ type ToolbarAction = 'edit' | 'ai-expand' | 'ai-simplify';
 
 export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterContentProps) {
   const { toast } = useToast();
+  const contentRef = useRef<HTMLDivElement>(null);
   const [selection, setSelection] = useState<string | null>(null);
+  const [highlightedContent, setHighlightedContent] = useState<string | null>(null);
   const [popoverAction, setPopoverAction] = useState<ToolbarAction | null>(null);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [manualEditContent, setManualEditContent] = useState('');
   const [isSubmittingManualEdit, setIsSubmittingManualEdit] = useState(false);
 
-  const chapterKey = useMemo(() => chapter?.id, [chapter]);
+  // Reset state when chapter changes
+  useEffect(() => {
+    handlePopoverClose(); // Close any open popovers
+    setHighlightedContent(null); // Clear highlights
+  }, [chapter?.id]);
 
+
+  const getCleanedHtml = (html: string) => {
+    return html
+      .replace(/<mark>/g, '')
+      .replace(/<\/mark>/g, '');
+  }
+  
   const handleMouseUp = () => {
-    if (isPopoverOpen) return;
-
-    const selectedText = window.getSelection()?.toString().trim();
+    if (isPopoverOpen || !contentRef.current) return;
+  
+    const sel = window.getSelection();
+    const selectedText = sel?.toString().trim();
+  
     if (selectedText && selectedText.length > 10) {
-      setSelection(selectedText);
+      const range = sel.getRangeAt(0);
+      const clonedRange = range.cloneRange();
+      const tempDiv = document.createElement("div");
+      tempDiv.appendChild(clonedRange.cloneContents());
+      const selectedHtml = tempDiv.innerHTML;
+
+      if(chapter) {
+         // Create a regex that is more robust to HTML tags inside the selection
+         const pattern = selectedText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').split(/\s+/).join('\\s+(<[^>]+>\\s*)*');
+         const regex = new RegExp(pattern, 'i');
+         const originalContent = getCleanedHtml(chapter.content);
+         const match = originalContent.match(regex);
+         
+         if (match) {
+            const highlighted = originalContent.replace(match[0], `<mark>${match[0]}</mark>`);
+            setHighlightedContent(highlighted);
+            setSelection(match[0]); // Store the exact matched HTML
+         } else {
+             // Fallback for plain text
+            const highlighted = originalContent.replace(selectedText, `<mark>${selectedText}</mark>`);
+            setHighlightedContent(highlighted);
+            setSelection(selectedText);
+         }
+      }
     } else {
       setSelection(null);
+      setHighlightedContent(null);
     }
   };
 
   const handleToolbarAction = (action: ToolbarAction, selectedText: string) => {
-    setSelection(selectedText);
     setPopoverAction(action);
     setIsPopoverOpen(true);
     if(action === 'edit') {
-      setManualEditContent(selectedText);
+      setManualEditContent(getCleanedHtml(selectedText));
     }
   };
 
@@ -55,13 +93,15 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
     setIsPopoverOpen(false);
     setPopoverAction(null);
     setSelection(null);
+    setHighlightedContent(null);
   };
   
   const handleAiActionSubmit = async (prompt: string) => {
     if (!selection || !popoverAction || !chapter) return;
 
     let result;
-    const values = { selection, additionalDetails: prompt };
+    const cleanSelection = getCleanedHtml(selection);
+    const values = { selection: cleanSelection, additionalDetails: prompt };
 
     try {
       if (popoverAction === 'ai-expand') {
@@ -93,11 +133,12 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
   const handleManualEditSubmit = async () => {
     if (!selection || !chapter) return;
     setIsSubmittingManualEdit(true);
+    const cleanSelection = getCleanedHtml(selection);
 
     const result = await updateChapterContentAction(
       course.id,
       chapter.id,
-      selection,
+      cleanSelection,
       manualEditContent
     );
 
@@ -168,7 +209,7 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
     return (
         <AiActionForm
             title={title}
-            selection={selection}
+            selection={getCleanedHtml(selection)}
             placeholder={placeholder}
             buttonText={buttonText}
             onSubmit={handleAiActionSubmit}
@@ -177,17 +218,20 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
     )
   }
 
+  const finalContent = highlightedContent || chapter.content.replace(/<mark>|<\/mark>/g, '');
+  const finalHtml = finalContent.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>').replace(/\n/g, '<br />');
+
   return (
     <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-        <ScrollArea className="h-full bg-background" onMouseUp={handleMouseUp} key={chapterKey}>
-        <div className="p-4 sm:p-6 lg:p-12 prose prose-lg dark:prose-invert max-w-4xl mx-auto prose-headings:font-headline prose-code:font-code prose-code:bg-muted prose-code:p-1 prose-code:rounded">
+        <ScrollArea className="h-full bg-background" onMouseUp={handleMouseUp}>
+        <div ref={contentRef} className="p-4 sm:p-6 lg:p-12 prose prose-lg dark:prose-invert max-w-4xl mx-auto prose-headings:font-headline prose-code:font-code prose-code:bg-muted prose-code:p-1 prose-code:rounded">
             <header className="not-prose mb-12">
             <h1 className="font-headline text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
                 {chapter.title}
             </h1>
             </header>
 
-            <div dangerouslySetInnerHTML={{ __html: chapter.content.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>').replace(/\n/g, '<br />') }} />
+            <div dangerouslySetInnerHTML={{ __html: finalHtml }} />
             
         </div>
         {selection && !isPopoverOpen && (

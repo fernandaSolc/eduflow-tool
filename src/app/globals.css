@@ -78,4 +78,7 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+  mark {
+    @apply bg-yellow-200/70 dark:bg-yellow-700/50 rounded px-1 py-0.5;
+  }
 }
