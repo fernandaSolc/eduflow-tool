@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { expandChapterAction, simplifyChapterAction, updateChapterContentAction } from '@/lib/actions';
 import { Loader2 } from 'lucide-react';
+import { ImagePlaceholderDialog } from './image-placeholder-dialog';
 
 type ChapterContentProps = {
   course: Course;
@@ -19,7 +20,7 @@ type ChapterContentProps = {
   onUpdateChapter: () => void;
 };
 
-type ToolbarAction = 'edit' | 'ai-expand' | 'ai-simplify';
+type ToolbarAction = 'edit' | 'ai-expand' | 'ai-simplify' | 'add-image';
 
 export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterContentProps) {
   const { toast } = useToast();
@@ -37,6 +38,9 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
   // State for snippet edit mode
   const [manualEditContent, setManualEditContent] = useState('');
   const [isSubmittingManualEdit, setIsSubmittingManualEdit] = useState(false);
+  
+  // State for image placeholder
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
 
   // Reset state when chapter changes
   useEffect(() => {
@@ -63,23 +67,12 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
       const clonedRange = range.cloneRange();
       const tempDiv = document.createElement("div");
       tempDiv.appendChild(clonedRange.cloneContents());
-      const selectedHtml = tempDiv.innerHTML;
-
+      
       if(chapter) {
-         const pattern = selectedText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').split(/\s+/).join('\\s+(<[^>]+>\\s*)*');
-         const regex = new RegExp(pattern, 'i');
          const originalContent = getCleanedHtml(chapter.content);
-         const match = originalContent.match(regex);
-         
-         if (match) {
-            const highlighted = originalContent.replace(match[0], `<mark>${match[0]}</mark>`);
-            setHighlightedContent(highlighted);
-            setSelection(match[0]);
-         } else {
-            const highlighted = originalContent.replace(selectedText, `<mark>${selectedText}</mark>`);
-            setHighlightedContent(highlighted);
-            setSelection(selectedText);
-         }
+         const highlighted = originalContent.replace(selectedText, `<mark>${selectedText}</mark>`);
+         setHighlightedContent(highlighted);
+         setSelection(selectedText);
       }
     } else {
       setSelection(null);
@@ -88,6 +81,10 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
   };
 
   const handleToolbarAction = (action: ToolbarAction, selectedText: string) => {
+    if (action === 'add-image') {
+      setIsImageDialogOpen(true);
+      return;
+    }
     setPopoverAction(action);
     setIsPopoverOpen(true);
     if(action === 'edit') {
@@ -180,6 +177,7 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
       .replace(/<\/h3>/gi, '\n')
       .replace(/<li>/gi, '- ')
       .replace(/<\/li>/gi, '\n')
+      .replace(/<div class="image-placeholder".*?data-image-description="(.*?)".*?>.*?<\/div>/gs, '[IMAGEM: $1]')
       .replace(/<[^>]+>/g, ''); // Strip remaining tags
     setFullEditContent(plainText.trim());
     setIsEditing(true);
@@ -189,20 +187,28 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
     if (!chapter) return;
     setIsSubmittingFullEdit(true);
 
-    // Convert plain text back to simple HTML
+    const imagePlaceholderHtml = (description: string) => 
+      `<div class="image-placeholder" contenteditable="false">
+         <div class="placeholder-icon">🖼️</div>
+         <div class="placeholder-text">
+           <strong>Imagem Sugerida:</strong>
+           <p>${description}</p>
+         </div>
+       </div>`;
+
     const newHtmlContent = fullEditContent
       .replace(/## (.*)/g, '<h2>$1</h2>')
       .replace(/### (.*)/g, '<h3>$1</h3>')
+      .replace(/\[IMAGEM: (.*?)\]/g, (match, description) => imagePlaceholderHtml(description))
       .split('\n')
       .map(line => line.trim() ? `<p>${line}</p>` : '<br />')
       .join('');
       
-    // Using updateChapterContentAction to replace the whole content
     const result = await updateChapterContentAction(
       course.id,
       chapter.id,
-      chapter.content, // Old content to be replaced
-      newHtmlContent // New full content
+      chapter.content,
+      newHtmlContent
     );
 
     setIsSubmittingFullEdit(false);
@@ -222,7 +228,46 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
       });
     }
   };
+  
+  const handleImagePlaceholderInsert = async (description: string) => {
+    if (!chapter || !selection) return;
 
+    const placeholderHtml = `
+      <div class="image-placeholder" contenteditable="false" data-image-description="${description}">
+        <div class="placeholder-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+        </div>
+        <div class="placeholder-text">
+          <strong>Imagem Sugerida:</strong>
+          <p>${description}</p>
+        </div>
+      </div>
+    `;
+
+    const newContent = chapter.content.replace(selection, `${selection}${placeholderHtml}`);
+    
+    const result = await updateChapterContentAction(
+      course.id,
+      chapter.id,
+      chapter.content,
+      newContent
+    );
+
+    if (result.success) {
+      toast({
+        title: "Espaço para Imagem Adicionado",
+        description: "A sugestão de imagem foi inserida no conteúdo.",
+      });
+      onUpdateChapter();
+    } else {
+       toast({
+        variant: "destructive",
+        title: "Erro ao Inserir Imagem",
+        description: result?.error || "Não foi possível adicionar o espaço para imagem.",
+      });
+    }
+    handlePopoverClose();
+  };
 
   if (!chapter) {
     return (
@@ -336,6 +381,12 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
         <PopoverContent className="w-96 p-0" side="top" align="center" sideOffset={10} onInteractOutside={handlePopoverClose}>
             <PopoverContentComponent />
         </PopoverContent>
+        <ImagePlaceholderDialog
+          open={isImageDialogOpen}
+          onOpenChange={setIsImageDialogOpen}
+          onSubmit={handleImagePlaceholderInsert}
+          onClose={() => setIsImageDialogOpen(false)}
+        />
     </Popover>
   );
 }
