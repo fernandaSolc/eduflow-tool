@@ -186,5 +186,3 @@ export async function updateChapterContentAction(
     return { success: false, error: errorMessage };
   }
 }
-
-    
