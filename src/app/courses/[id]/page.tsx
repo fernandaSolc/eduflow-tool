@@ -31,8 +31,10 @@ export default function CoursePage({ params }: { params: { id: string } }) {
             setCourse(fetchedCourse);
              // Auto-select first chapter if no chapter is active or the active one is not in the list
             if (fetchedCourse.chapters && fetchedCourse.chapters.length > 0) {
-              const chapterExists = fetchedCourse.chapters.some(c => c.id === activeChapterId);
-              if (!activeChapterId || !chapterExists) {
+              const currentActiveChapter = window.localStorage.getItem(`activeChapter_${courseId}`);
+              const activeChapterExists = fetchedCourse.chapters.some(c => `"${c.id}"` === currentActiveChapter);
+              
+              if (!currentActiveChapter || !activeChapterExists) {
                 setActiveChapterId(fetchedCourse.chapters[0].id);
               }
             } else if (activeChapterId) {
@@ -46,12 +48,12 @@ export default function CoursePage({ params }: { params: { id: string } }) {
     } finally {
         setLoading(false);
     }
-  }, [courseId, activeChapterId, setActiveChapterId]);
+  }, [courseId, setActiveChapterId, activeChapterId]);
 
 
   useEffect(() => {
     fetchCourseData();
-  }, [courseId, fetchCourseData]);
+  }, [courseId]);
 
   const activeChapter = useMemo(
     () => course?.chapters?.find((c) => c.id === activeChapterId),
