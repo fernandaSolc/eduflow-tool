@@ -3,8 +3,8 @@ export type Course = {
   title: string;
   description: string;
   subject: string;
-  educationalLevel: string;
-  targetAudience: string;
+  educationalLevel?: string;
+  targetAudience?: string;
   template: string;
   philosophy: string;
   status: string;
@@ -15,22 +15,27 @@ export type Course = {
 
 export type Chapter = {
   id: string;
-  courseId: string;
-  chapterNumber: number;
+  course_id: string;
+  chapter_number: number;
   title: string;
   content: string;
   sections: ChapterSection[];
   status: string;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
   metrics: {
     readabilityScore: number;
-    durationMin: number;
-    coverage: number;
+    durationMinutes: number;
+    coveragePercentage: number;
+    qualityScore: number;
+    wordCount: number;
+    sectionCompleteness: number;
   };
   suggestions: string[];
-  canContinue: boolean;
-  availableContinueTypes: string[];
+  can_continue: boolean;
+  available_continue_types: string[];
+  workflow_id?: string;
+  execution_meta?: any;
 };
 
 export type ChapterSection = {
@@ -39,6 +44,9 @@ export type ChapterSection = {
   content: string;
   type: 'contextualizando' | 'conectando' | 'aprofundando' | 'praticando' | 'recapitulando' | 'exercitando';
   orderIndex: number;
+  createdAt?: string;
+  activities?: any[] | null;
+  questions?: any[] | null;
 };
 
 

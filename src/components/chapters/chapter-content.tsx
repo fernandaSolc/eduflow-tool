@@ -13,6 +13,8 @@ import { useToast } from '@/hooks/use-toast';
 import { expandChapterAction, simplifyChapterAction, updateChapterContentAction, generateQuestionAction, createExampleAction } from '@/lib/actions';
 import { Loader2 } from 'lucide-react';
 import { ImagePlaceholderDialog } from './image-placeholder-dialog';
+import { SmartEditorToolbar } from '@/components/SmartEditorToolbar';
+import { useSmartEditor } from '@/hooks/useSmartEditor';
 
 type ChapterContentProps = {
   course: Course;
@@ -30,6 +32,28 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
   const [highlightedContent, setHighlightedContent] = useState<string | null>(null);
   const [popoverAction, setPopoverAction] = useState<ToolbarAction | null>(null);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+  // Smart Editor Hook
+  const {
+    selectedText: smartSelectedText,
+    selectionPosition,
+    showToolbar: showSmartToolbar,
+    isValidSelection,
+    transformContent,
+    handleTextSelection: handleSmartTextSelection,
+    closeToolbar: closeSmartToolbar,
+    editorRef: smartEditorRef
+  } = useSmartEditor({
+    chapterId: chapter?.id || '',
+    onContentUpdate: (newContent) => {
+      // Atualizar conteúdo quando transformação for aplicada
+      onUpdateChapter();
+      toast({
+        title: 'Conteúdo Transformado!',
+        description: 'O conteúdo foi atualizado com sucesso.',
+      });
+    }
+  });
   
   // State for full edit mode
   const [isEditing, setIsEditing] = useState(false);
@@ -47,21 +71,28 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
   // Reset state when chapter changes
   useEffect(() => {
     handlePopoverClose();
+    closeSmartToolbar(); // Reset smart editor
     setHighlightedContent(null);
     setIsEditing(false); // Exit edit mode on chapter change
     setIsImageDialogVisible(false);
-  }, [chapter?.id]);
+  }, [chapter?.id, closeSmartToolbar]);
 
 
   const getCleanedHtml = (html: string) => {
     return html
       .replace(/<mark>/g, '')
-      .replace(/<\/mark>/g, '');
+      .replace(/<\/mark>/g, '')
+      .replace(/<[^>]*>/g, '') // Remove todas as tags HTML
+      .trim();
   }
   
   const handleMouseUp = () => {
     if (isPopoverOpen || isEditing || !contentRef.current) return;
   
+    // Usar o smart editor para seleção inteligente
+    handleSmartTextSelection();
+    
+    // Manter lógica original para compatibilidade
     const sel = window.getSelection();
     const selectedText = sel?.toString().trim();
   
@@ -435,6 +466,28 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
         handlePopoverClose();
       }}
     />
+
+    {/* Smart Editor Toolbar */}
+    {showSmartToolbar && chapter && (
+      <SmartEditorToolbar
+        selectedText={smartSelectedText}
+        chapterId={chapter.id}
+        onTransform={(type, result) => {
+          console.log('Transformação aplicada:', result);
+          closeSmartToolbar();
+        }}
+        onError={(error) => {
+          toast({
+            variant: "destructive",
+            title: "Erro ao Transformar",
+            description: error,
+          });
+          closeSmartToolbar();
+        }}
+        position={selectionPosition}
+        onClose={closeSmartToolbar}
+      />
+    )}
   </>
   );
 }

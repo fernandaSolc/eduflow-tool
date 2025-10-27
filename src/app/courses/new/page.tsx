@@ -26,8 +26,8 @@ const formSchema = z.object({
   title: z.string().min(5, { message: 'O título deve ter pelo menos 5 caracteres.' }),
   description: z.string().min(20, { message: 'A ementa deve ter pelo menos 20 caracteres.' }),
   subject: z.string().min(3, { message: 'A disciplina é obrigatória.' }),
-  educationalLevel: z.string().min(3, { message: 'O nível educacional é obrigatório.' }),
-  targetAudience: z.string().min(3, { message: 'O público-alvo é obrigatório.' }),
+  educationalLevel: z.string().optional(),
+  targetAudience: z.string().optional(),
   template: z.string().min(3, { message: 'O modelo é obrigatório.' }),
   philosophy: z.string().min(10, { message: 'A filosofia deve ter pelo menos 10 caracteres.' }),
 });

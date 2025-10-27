@@ -28,8 +28,8 @@ export class BackendService {
   private apiKey: string;
 
   constructor() {
-    this.baseURL = process.env.BACKEND_URL || 'http://localhost:3007/api';
-    this.apiKey = process.env.BACKEND_API_KEY || 'dev-api-key-123';
+    this.baseURL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://main.eduflow.pro/api';
+    this.apiKey = process.env.NEXT_PUBLIC_BACKEND_API_KEY || 'dev-api-key-123';
   }
 
   private async makeRequest<T>(
@@ -53,7 +53,7 @@ export class BackendService {
     if (data && method !== 'GET') {
       config.body = JSON.stringify(data);
     }
-    
+
     const response = await fetch(url, config);
 
     if (!response.ok) {
@@ -65,13 +65,13 @@ export class BackendService {
     // Lida com casos onde a resposta pode estar vazia
     const text = await response.text();
     try {
-        return JSON.parse(text);
+      return JSON.parse(text);
     } catch (e) {
-        if (text) {
-          // Sometimes the service returns a plain string for errors.
-          throw new Error(text);
-        }
-        return {} as T;
+      if (text) {
+        // Sometimes the service returns a plain string for errors.
+        throw new Error(text);
+      }
+      return {} as T;
     }
   }
 
@@ -91,8 +91,8 @@ export class BackendService {
 
     const queryString = params.toString();
     const endpoint = queryString ? `${API_CONFIG.BACKEND.ENDPOINTS.COURSES}?${queryString}` : API_CONFIG.BACKEND.ENDPOINTS.COURSES;
-    
-    return this.makeRequest<PaginatedResponse<Course>>(endpoint, 'GET', null, { cache: 'no-store'});
+
+    return this.makeRequest<PaginatedResponse<Course>>(endpoint, 'GET', null, { cache: 'no-store' });
   }
 
   async getCourseById(courseId: string): Promise<{ success: boolean; data: Course }> {
@@ -116,7 +116,7 @@ export class BackendService {
       courseData
     );
   }
-  
+
   async updateChapter(chapterId: string, chapterData: Partial<Chapter>): Promise<{ success: boolean; data: Chapter }> {
     return this.makeRequest<{ success: boolean; data: Chapter }>(
       `${API_CONFIG.BACKEND.ENDPOINTS.CHAPTERS}/${chapterId}`,

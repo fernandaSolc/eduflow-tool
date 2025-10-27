@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { backendService } from './services';
 import { aiService, type CreateChapterRequest } from './ai-service';
+import { aiServiceClient, type TransformRequest } from './ai-service-client';
 import type { Course, Chapter } from './definitions';
 
 export async function createCourseAction(
@@ -16,22 +17,32 @@ export async function createCourseAction(
       courseTitle: newCourse.title,
       courseDescription: newCourse.description,
       subject: newCourse.subject,
-      educationalLevel: newCourse.educationalLevel,
-      targetAudience: newCourse.targetAudience,
+      educationalLevel: newCourse.educationalLevel || 'Ensino Médio',
+      targetAudience: newCourse.targetAudience || 'Estudantes',
       template: newCourse.template,
       philosophy: newCourse.philosophy,
+      title: 'Introdução',
+      prompt: 'Gere um capítulo introdutório para o curso.',
       chapterNumber: 1,
       additionalContext: `Título do Capítulo: Introdução\n\nInstruções: Gere um capítulo introdutório para o curso.`
     };
-    await aiService.createChapter(chapterInput);
-    
+
+    // O AI Service agora salva automaticamente no backend
+    const newChapter = await aiService.createChapter(chapterInput);
+    console.log('Capítulo criado e salvo no backend:', newChapter.id);
+
     revalidatePath('/');
     revalidatePath(`/courses/${newCourse.id}`);
-    
+
     return { success: true, data: newCourse };
   } catch (error) {
     console.error('Erro ao criar curso:', error);
     const errorMessage = error instanceof Error ? error.message : 'Falha ao criar o curso.';
+    console.error('Detalhes do erro:', {
+      error: errorMessage,
+      courseData: values,
+      timestamp: new Date().toISOString()
+    });
     return { success: false, error: errorMessage };
   }
 }
@@ -47,15 +58,18 @@ export async function generateChapterAction(
       courseTitle: course.title,
       courseDescription: course.description,
       subject: course.subject,
-      educationalLevel: course.educationalLevel,
-      targetAudience: course.targetAudience,
+      educationalLevel: course.educationalLevel || 'Ensino Médio',
+      targetAudience: course.targetAudience || 'Estudantes',
       template: course.template,
       philosophy: course.philosophy,
+      title: values.title,
+      prompt: values.prompt,
       chapterNumber: (course.chapters?.length || 0) + 1,
       additionalContext: `Título do Capítulo: ${values.title}\n\nInstruções: ${values.prompt}`
     };
 
     const newChapter = await aiService.createChapter(input);
+    console.log('Capítulo gerado e salvo no backend:', newChapter.id);
 
     revalidatePath(`/courses/${course.id}`);
     return {
@@ -65,6 +79,12 @@ export async function generateChapterAction(
   } catch (error) {
     console.error('Erro ao gerar capítulo:', error);
     const errorMessage = error instanceof Error ? error.message : 'Falha ao gerar capítulo.';
+    console.error('Detalhes do erro:', {
+      error: errorMessage,
+      courseId: course.id,
+      chapterData: values,
+      timestamp: new Date().toISOString()
+    });
     return { success: false, error: errorMessage };
   }
 }
@@ -81,9 +101,9 @@ export async function expandChapterAction(
     const context = `Expanda o seguinte trecho de texto: "${values.selection}".\nInstruções adicionais: ${values.additionalDetails || 'Nenhuma.'}`;
 
     const updatedChapter = await aiService.continueChapter(
-        chapterId, 
-        'expand', 
-        context
+      chapterId,
+      'expand',
+      context
     );
 
     revalidatePath(`/courses/${courseId}`);
@@ -110,9 +130,9 @@ export async function simplifyChapterAction(
   try {
     const context = `Simplifique o seguinte trecho de texto: "${values.selection}".\nInstruções adicionais: ${values.additionalDetails || 'Nenhuma.'}`;
     const updatedChapter = await aiService.continueChapter(
-        chapterId, 
-        'simplify', 
-        context
+      chapterId,
+      'simplify',
+      context
     );
 
     revalidatePath(`/courses/${courseId}`);
@@ -138,9 +158,9 @@ export async function generateQuestionAction(
   try {
     const context = `Gere uma questão de avaliação (múltipla escolha ou dissertativa) sobre o seguinte trecho: "${values.selection}".\nInstruções adicionais: ${values.additionalDetails || 'Nenhuma.'}`;
     const updatedChapter = await aiService.continueChapter(
-        chapterId, 
-        'assess', 
-        context
+      chapterId,
+      'assess',
+      context
     );
 
     revalidatePath(`/courses/${courseId}`);
@@ -166,9 +186,9 @@ export async function createExampleAction(
   try {
     const context = `Crie um exemplo prático, uma analogia ou um estudo de caso sobre o seguinte conceito: "${values.selection}".\nInstruções adicionais: ${values.additionalDetails || 'Nenhuma.'}`;
     const updatedChapter = await aiService.continueChapter(
-        chapterId, 
-        'exemplify', 
-        context
+      chapterId,
+      'exemplify',
+      context
     );
 
     revalidatePath(`/courses/${courseId}`);
@@ -192,11 +212,11 @@ export async function enrichChapterAction(
 ) {
   try {
     const updatedChapter = await aiService.continueChapter(
-        chapter.id, 
-        'expand',
-        `Enriquecer o seguinte conteúdo com base na consulta do usuário: "${values.userQuery}". Conteúdo existente: "${chapter.content}"`
+      chapter.id,
+      'expand',
+      `Enriquecer o seguinte conteúdo com base na consulta do usuário: "${values.userQuery}". Conteúdo existente: "${chapter.content}"`
     );
-    
+
     revalidatePath(`/courses/${updatedChapter.courseId}`);
     return {
       success: true,
@@ -224,16 +244,16 @@ export async function updateChapterContentAction(
     if (!chapter) {
       throw new Error("Capítulo não encontrado.");
     }
-    
+
     const updatedContent = isFullEdit ? newContent : chapter.content.replace(oldContent, newContent);
 
     const result = await backendService.updateChapter(chapterId, { content: updatedContent });
-    
+
     if (result.success) {
       revalidatePath(`/courses/${courseId}`);
       return { success: true, data: result.data };
     }
-    
+
     return { success: false, error: 'Falha ao atualizar capítulo' };
 
   } catch (error) {
@@ -241,4 +261,99 @@ export async function updateChapterContentAction(
     const errorMessage = error instanceof Error ? error.message : 'Falha ao atualizar o conteúdo.';
     return { success: false, error: errorMessage };
   }
+}
+
+// ===== NOVAS FUNCIONALIDADES DE TRANSFORMAÇÃO INTELIGENTE =====
+
+export interface ActionResult<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message: string;
+}
+
+export async function transformChapterContent(
+  chapterId: string,
+  continueType: 'expand' | 'simplify' | 'exemplify' | 'assess' | 'add_section' | 'add_activities' | 'add_assessments',
+  selectedText: string,
+  additionalContext?: string
+): Promise<ActionResult> {
+  try {
+    if (!chapterId || !continueType || !selectedText) {
+      return {
+        success: false,
+        error: 'Parâmetros obrigatórios não fornecidos',
+        message: 'Erro de validação: chapterId, continueType e selectedText são obrigatórios'
+      };
+    }
+
+    const cleanText = selectedText.replace(/<[^>]*>/g, '').trim();
+    
+    if (cleanText.length < 10) {
+      return {
+        success: false,
+        error: 'Texto muito curto',
+        message: 'O texto selecionado deve ter pelo menos 10 caracteres'
+      };
+    }
+
+    const request: TransformRequest = {
+      chapterId,
+      continueType,
+      selectedText: cleanText,
+      additionalContext
+    };
+
+    const result = await aiServiceClient.transformContent(request);
+
+    revalidatePath(`/courses/[id]`);
+    revalidatePath(`/courses/[id]/chapters/[chapterId]`);
+
+    return {
+      success: true,
+      data: result,
+      message: 'Conteúdo transformado com sucesso'
+    };
+
+  } catch (error) {
+    console.error('Erro ao transformar conteúdo:', error);
+    
+    return {
+      success: false,
+      error: error.message,
+      message: 'Erro ao transformar conteúdo. Tente novamente.'
+    };
+  }
+}
+
+export async function expandSelectedContent(
+  chapterId: string,
+  selectedText: string,
+  additionalDetails?: string
+): Promise<ActionResult> {
+  return transformChapterContent(chapterId, 'expand', selectedText, additionalDetails);
+}
+
+export async function simplifySelectedContent(
+  chapterId: string,
+  selectedText: string,
+  additionalDetails?: string
+): Promise<ActionResult> {
+  return transformChapterContent(chapterId, 'simplify', selectedText, additionalDetails);
+}
+
+export async function createExampleForContent(
+  chapterId: string,
+  selectedText: string,
+  additionalDetails?: string
+): Promise<ActionResult> {
+  return transformChapterContent(chapterId, 'exemplify', selectedText, additionalDetails);
+}
+
+export async function generateQuestionForContent(
+  chapterId: string,
+  selectedText: string,
+  additionalDetails?: string
+): Promise<ActionResult> {
+  return transformChapterContent(chapterId, 'assess', selectedText, additionalDetails);
 }

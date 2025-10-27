@@ -2,75 +2,76 @@
 
 import type { Course, Chapter } from './definitions';
 import { backendService } from './services';
-import { mockCourse, mockCourses } from './mock-data';
 
 export const getCourses = async (): Promise<Course[]> => {
-    // try {
-    //     const response = await backendService.getCourses();
-    //     // A API retorna um objeto com 'data' e 'pagination', pegamos apenas 'data'
-    //     return response.data;
-    // } catch (error) {
-    //     console.error("Failed to fetch courses:", error);
-    //     // Em caso de erro, retorna um array vazio para não quebrar a UI
-    //     return [];
-    // }
-    console.log("Usando dados mocados para getCourses");
-    return Promise.resolve(mockCourses);
+    try {
+        const response = await backendService.getCourses();
+        // A API retorna um objeto com 'data' e 'pagination', pegamos apenas 'data'
+        return response.data;
+    } catch (error) {
+        console.error("Failed to fetch courses:", error);
+        // Em caso de erro, retorna um array vazio para não quebrar a UI
+        return [];
+    }
 }
 
 export const getCourseById = async (id: string): Promise<Course | undefined> => {
     if (!id) return undefined;
-    // try {
-    //     // A API retorna um objeto com 'success' e 'data'
-    //     const { data: course } = await backendService.getCourseById(id);
-        
-    //     if (course) {
-    //         // Fetch chapters separadamente e anexa ao curso
-    //         const { data: chapters } = await backendService.getCourseChapters(id);
-    //         course.chapters = chapters;
-    //     }
+    try {
+        // A API retorna um objeto com 'success' e 'data'
+        const { data: course } = await backendService.getCourseById(id);
 
-    //     return course;
-    // } catch (error) {
-    //     console.error(`Failed to fetch course ${id}:`, error);
-    //     // Retorna undefined para que a página possa tratar como "não encontrado"
-    //     return undefined;
-    // }
-    console.log(`Usando dados mocados para getCourseById com id: ${id}`);
-    const course = mockCourses.find(c => c.id === id);
-    return Promise.resolve(course);
+        if (course) {
+            // Fetch chapters separadamente e anexa ao curso
+            const { data: chapters } = await backendService.getCourseChapters(id);
+            course.chapters = chapters;
+        }
+
+        return course;
+    } catch (error) {
+        console.error(`Failed to fetch course ${id}:`, error);
+        // Retorna undefined para que a página possa tratar como "não encontrado"
+        return undefined;
+    }
 }
 
 export async function addChapterToCourse(courseId: string, chapter: Chapter) {
-    if (courseId !== 'mock-course-1') return;
-    
-    if (mockCourse) {
-        if (!mockCourse.chapters) {
-            mockCourse.chapters = [];
+    try {
+        // Atualizar o capítulo no backend
+        const result = await backendService.updateChapter(chapter.id, chapter);
+        if (result.success) {
+            console.log(`Chapter ${chapter.id} updated in backend`);
         }
-        const existingChapterIndex = mockCourse.chapters.findIndex(c => c.id === chapter.id);
-        if (existingChapterIndex > -1) {
-            mockCourse.chapters[existingChapterIndex] = chapter;
-        } else {
-            mockCourse.chapters.push(chapter);
-        }
+    } catch (error) {
+        console.error(`Failed to update chapter ${chapter.id}:`, error);
     }
 }
 
 export async function updateChapterContent(courseId: string, chapterId: string, oldContent: string, newContent: string) {
-    if (courseId !== 'mock-course-1' || !mockCourse.chapters) return;
-    
-    const chapter = mockCourse.chapters.find(c => c.id === chapterId);
-    if (chapter) {
-        chapter.content = chapter.content.replace(oldContent, newContent);
+    try {
+        // Buscar o capítulo atual
+        const { data: chapter } = await backendService.getChapterById(chapterId);
+        if (chapter) {
+            // Atualizar o conteúdo
+            const updatedContent = chapter.content.replace(oldContent, newContent);
+            const result = await backendService.updateChapter(chapterId, { content: updatedContent });
+
+            if (result.success) {
+                console.log(`Chapter ${chapterId} content updated in backend`);
+            }
+        }
+    } catch (error) {
+        console.error(`Failed to update chapter content ${chapterId}:`, error);
     }
 }
 
 export async function updateChapter(courseId: string, updatedChapter: Chapter) {
-  if (courseId !== 'mock-course-1' || !mockCourse.chapters) return;
-  
-  const chapterIndex = mockCourse.chapters.findIndex(c => c.id === updatedChapter.id);
-  if (chapterIndex !== -1) {
-    mockCourse.chapters[chapterIndex] = updatedChapter;
-  }
+    try {
+        const result = await backendService.updateChapter(updatedChapter.id, updatedChapter);
+        if (result.success) {
+            console.log(`Chapter ${updatedChapter.id} updated in backend`);
+        }
+    } catch (error) {
+        console.error(`Failed to update chapter ${updatedChapter.id}:`, error);
+    }
 }

@@ -10,6 +10,8 @@ export interface CreateChapterRequest {
   targetAudience: string;
   template: string;
   philosophy: string;
+  title: string;
+  prompt: string;
   chapterNumber?: number;
   additionalContext?: string;
   pdfUrls?: string[];
@@ -27,7 +29,7 @@ export class AIService {
   private apiKey: string;
 
   constructor() {
-    this.baseURL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localhost:3005';
+    this.baseURL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'https://aiservice.eduflow.pro';
     this.apiKey = process.env.AI_SERVICE_API_KEY || 'test-api-key-123';
   }
 
@@ -52,7 +54,7 @@ export class AIService {
     if (data && method !== 'GET') {
       config.body = JSON.stringify(data);
     }
-    
+
     const response = await fetch(url, config);
 
     if (!response.ok) {
@@ -63,9 +65,9 @@ export class AIService {
 
     const text = await response.text();
     try {
-        return JSON.parse(text);
+      return JSON.parse(text);
     } catch (e) {
-        return text as any;
+      return text as any;
     }
   }
 
@@ -112,6 +114,10 @@ export class AIService {
     return this.makeRequest<Chapter[]>(
       `${API_CONFIG.AI_SERVICE.ENDPOINTS.GET_COURSE_CHAPTERS}/${courseId}/chapters`
     );
+  }
+
+  async getMetrics(): Promise<any> {
+    return this.makeRequest(API_CONFIG.AI_SERVICE.ENDPOINTS.METRICS);
   }
 }
 
