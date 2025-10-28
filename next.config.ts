@@ -1,14 +1,20 @@
-import type {NextConfig} from 'next';
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Modo estrito e seguro
+  reactStrictMode: true,
+
+  // Permite build em ambientes Docker/CI sem falhas de tipagem ou lint
   typescript: {
     ignoreBuildErrors: true,
   },
   eslint: {
     ignoreDuringBuilds: true,
   },
+
+  // Configura imagens externas seguras e com cache otimizado
   images: {
+    formats: ['image/webp'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -30,9 +36,18 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+
+  // Melhora performance de build (sem cache experimental bugado)
   experimental: {
     fetchCache: false,
-  }
+    optimizeCss: true,
+    workerThreads: false,
+  },
+
+  // Melhora compatibilidade com Docker
+  compress: true,
+  poweredByHeader: false,
+  trailingSlash: false,
 };
 
 export default nextConfig;
