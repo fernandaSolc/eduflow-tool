@@ -11,10 +11,14 @@ FROM base AS deps
 ENV NODE_ENV=development
 COPY package.json package-lock.json* ./
 
-# FORÇA critters + npm atualizado + npm ci
+# ===== DEPENDÊNCIAS =====
+FROM base AS deps
+ENV NODE_ENV=development
+COPY package.json package-lock.json* ./
+
 RUN npm i -g npm@11.6.2 && \
     npm install critters@^0.0.24 --save-dev && \
-    npm ci --include=dev
+    npm install --include=dev
 
 # ===== BUILD =====
 FROM base AS builder
