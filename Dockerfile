@@ -2,23 +2,24 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copia apenas arquivos de dependências
-COPY package.json pnpm-lock.yaml* yarn.lock* ./
+# 1. Copie APENAS arquivos de dependências
+COPY package.json ./
+COPY pnpm-lock.yaml* yarn.lock* package-lock.json* ./
 
-# Instala dependências
+# 2. Instale dependências ANTES de copiar o código
 RUN \
   if [ -f pnpm-lock.yaml ]; then \
     corepack enable && corepack prepare pnpm@latest --activate && pnpm install --frozen-lockfile; \
   elif [ -f yarn.lock ]; then \
     yarn install --frozen-lockfile; \
   else \
-    npm install; \
+    npm ci; \
   fi
 
-# Copia o resto do código
+# 3. Agora copie o resto do código
 COPY . .
 
-# Build com mais memória
+# 4. Build com memória suficiente
 ENV NODE_OPTIONS=--max_old_space_size=4096
 RUN \
   if [ -f pnpm-lock.yaml ]; then pnpm run build; \
@@ -26,9 +27,8 @@ RUN \
   else npm run build; \
   fi
 
-# Stage 2: Runtime
+# Runtime
 FROM node:20-alpine
-
 WORKDIR /app
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
