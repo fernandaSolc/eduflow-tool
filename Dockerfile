@@ -1,65 +1,56 @@
-# ========= Base image =========
+# ========= Base =========
 FROM node:20-alpine AS base
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=9002
 WORKDIR /app
+# Necessário para libs nativas (ex.: sharp) em Alpine
+RUN apk add --no-cache libc6-compat
 
-# ========= Deps (usa o lockfile que existir) =========
+# ========= Deps =========
 FROM base AS deps
-# Copia apenas os manifestos para otimizar cache
+# Copia manifestos para cache eficiente
 COPY package.json package-lock.json* pnpm-lock.yaml* yarn.lock* ./
-# Instala dependências conforme o lockfile encontrado
-RUN \
+# Habilita corepack (yarn/pnpm gerenciados pela própria Node)
+RUN corepack enable
+# Instala dependências conforme lockfile disponível
+# - Se for npm: já atualiza npm p/ 11.6.2 (evita falhas da versão)
+RUN set -eux; \
   if [ -f pnpm-lock.yaml ]; then \
-    corepack enable && corepack prepare pnpm@latest --activate && pnpm i --frozen-lockfile; \
+    corepack prepare pnpm@latest --activate && pnpm i --frozen-lockfile; \
   elif [ -f yarn.lock ]; then \
-    corepack enable && corepack prepare yarn@stable --activate && yarn install --frozen-lockfile; \
+    corepack prepare yarn@stable --activate && yarn install --frozen-lockfile; \
   else \
-    npm ci; \
+    npm i -g npm@11.6.2 && npm ci; \
   fi
 
-# ========= Build (gera .next/standalone) =========
+# ========= Build =========
 FROM base AS builder
-# Habilita standalone (precisa de next.config.js com: module.exports = { output: 'standalone' })
+# Se usar yarn/pnpm, já vem de deps
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Importante: as variáveis NEXT_PUBLIC_* entram no build
-# Ajuste conforme necessário, ou injete via CI:
-# ENV NEXT_PUBLIC_AI_SERVICE_URL=https://aiservice.eduflow.pro \
-#     NEXT_PUBLIC_BACKEND_URL=https://main.eduflow.pro/api \
-#     NEXT_PUBLIC_AI_SERVICE_API_KEY=test-api-key-123 \
-#     NEXT_PUBLIC_BACKEND_API_KEY=dev-api-key-123 \
-#     NEXT_PUBLIC_APP_URL=https://tool.eduflow.pro
-RUN \
+# IMPORTANTE: para imagem pequena no runtime, habilite no projeto:
+# next.config.{js,ts} -> module.exports = { output: 'standalone', ... }
+# (Seu next.config.ts atual não tem 'output', adicione.)
+RUN set -eux; \
   if [ -f pnpm-lock.yaml ]; then pnpm run build; \
   elif [ -f yarn.lock ]; then yarn build; \
   else npm run build; \
   fi
 
-# ========= Runtime mínimo (standalone) =========
+# ========= Runtime (standalone) =========
 FROM node:20-alpine AS runner
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=9002
 WORKDIR /app
-# Usuário sem privilégios
 RUN addgroup -S nextjs && adduser -S nextjs -G nextjs
-
-# Copia artefatos do build standalone
-# - .next/standalone contém app + node_modules otimizados
-# - .next/static contém assets estáticos
+# Assets estáticos e bundle standalone
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/.next/standalone ./
-
-# Permissões
 RUN chown -R nextjs:nextjs /app
 USER nextjs
-
 EXPOSE 9002
-# Healthcheck simples (opcional)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s CMD wget -qO- http://127.0.0.1:9002/ >/dev/null 2>&1 || exit 1
-
-# Se o build standalone gerou server.js na raiz de .next/standalone
 CMD ["node", "server.js"]
