@@ -9,7 +9,12 @@ export const API_CONFIG = {
       CONTINUE_CHAPTER: '/v1/incremental/continue-chapter',
       GET_CHAPTER: '/v1/incremental/chapter',
       GET_COURSE_CHAPTERS: '/v1/incremental/course',
-      METRICS: '/v1/metrics'
+      METRICS: '/v1/metrics',
+      // Books (tradicional e universal)
+      BOOKS_UNIVERSAL_GENERATE: '/v1/books/universal/generate',
+      BOOKS_OUTLINE: '/v1/books/outline',
+      BOOKS_CHAPTER: '/v1/books/chapter',
+      BOOKS_FULL: '/v1/books/full'
     }
   },
   BACKEND: {

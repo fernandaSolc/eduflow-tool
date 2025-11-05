@@ -54,25 +54,51 @@ export class BackendService {
       config.body = JSON.stringify(data);
     }
 
-    const response = await fetch(url, config);
+    // Retry com backoff apenas para GET
+    const isGet = method === 'GET';
+    const backoffsMs = [500, 1000, 2000];
+    let lastError: any = null;
 
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error(`Erro de backend: ${response.status} ${response.statusText}`, errorBody);
-      throw new Error(`Erro de backend: ${response.status} ${response.statusText}. ${errorBody}`);
-    }
+    for (let attempt = 0; attempt < (isGet ? backoffsMs.length + 1 : 1); attempt++) {
+      try {
+        const response = await fetch(url, config);
 
-    // Lida com casos onde a resposta pode estar vazia
-    const text = await response.text();
-    try {
-      return JSON.parse(text);
-    } catch (e) {
-      if (text) {
-        // Sometimes the service returns a plain string for errors.
-        throw new Error(text);
+        if (!response.ok) {
+          const errorBody = await response.text();
+          console.error(`Erro de backend: ${response.status} ${response.statusText}`, errorBody);
+          // Para erros 5xx em GET, tentar novamente conforme backoff
+          if (isGet && response.status >= 500 && attempt < backoffsMs.length) {
+            await new Promise(res => setTimeout(res, backoffsMs[attempt]));
+            continue;
+          }
+          throw new Error(`Erro de backend: ${response.status} ${response.statusText}. ${errorBody}`);
+        }
+
+        // Lida com casos onde a resposta pode estar vazia
+        const text = await response.text();
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          if (text) {
+            // Sometimes the service returns a plain string for errors.
+            throw new Error(text);
+          }
+          return {} as T;
+        }
+      } catch (err: any) {
+        lastError = err;
+        const isConnRefused = err && (err.code === 'ECONNREFUSED' || /ECONNREFUSED/i.test(String(err.message)));
+        // Só re-tenta GET em erros de conexão, respeitando backoff
+        if (isGet && isConnRefused && attempt < backoffsMs.length) {
+          await new Promise(res => setTimeout(res, backoffsMs[attempt]));
+          continue;
+        }
+        // Para POST/PUT/DELETE, não re-tentar para evitar loops
+        break;
       }
-      return {} as T;
     }
+
+    throw lastError || new Error('Falha na requisição ao backend');
   }
 
   async checkHealth(): Promise<{ status: string; timestamp: string }> {
@@ -127,7 +153,10 @@ export class BackendService {
 
   async getCourseChapters(courseId: string): Promise<{ success: boolean; data: any[] }> {
     return this.makeRequest<{ success: boolean; data: any[] }>(
-      `${API_CONFIG.BACKEND.ENDPOINTS.COURSES}/${courseId}/chapters`
+      `${API_CONFIG.BACKEND.ENDPOINTS.COURSES}/${courseId}/chapters`,
+      'GET',
+      null,
+      { cache: 'no-store' }
     );
   }
 

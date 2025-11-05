@@ -2,6 +2,7 @@
 
 import type { Course, Chapter } from '@/lib/definitions';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import { BookText, Pencil } from 'lucide-react';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { EditorToolbar } from './editor-toolbar';
@@ -440,6 +441,40 @@ export function ChapterContent({ course, chapter, onUpdateChapter }: ChapterCont
             ) : (
               <div onMouseUp={handleMouseUp}>
                 <div dangerouslySetInnerHTML={{ __html: finalHtml }} />
+                
+                {/* Renderiza subcapítulos se existirem */}
+                {chapter.subchapters && chapter.subchapters.length > 0 && (
+                  <div className="mt-12 space-y-8">
+                    <Separator className="my-8" />
+                    <h2 className="text-2xl font-headline font-bold mb-6">Subcapítulos</h2>
+                    {chapter.subchapters
+                      .sort((a, b) => a.subchapter_number - b.subchapter_number)
+                      .map((subchapter) => (
+                        <div key={subchapter.id} className="space-y-4">
+                          <div className="flex items-center gap-3">
+                            <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-semibold">
+                              {subchapter.subchapter_number}
+                            </span>
+                            <h3 className="text-xl font-headline font-semibold">
+                              {subchapter.title}
+                            </h3>
+                          </div>
+                          <div 
+                            className="prose prose-lg dark:prose-invert max-w-none"
+                            dangerouslySetInnerHTML={{ __html: subchapter.content }} 
+                          />
+                          {subchapter.wordCount && (
+                            <p className="text-xs text-muted-foreground">
+                              {subchapter.wordCount.toLocaleString()} palavras
+                            </p>
+                          )}
+                          {subchapter.subchapter_number < chapter.subchapters.length && (
+                            <Separator className="my-6" />
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                )}
               </div>
             )}
             

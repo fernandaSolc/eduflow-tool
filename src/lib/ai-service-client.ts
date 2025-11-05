@@ -45,7 +45,7 @@ export class AIServiceClient {
   constructor() {
     this.baseURL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'https://aiservice.eduflow.pro';
     this.apiKey = process.env.AI_SERVICE_API_KEY || 'test-api-key-123';
-    this.timeout = 30000;
+    this.timeout = Number(process.env.NEXT_PUBLIC_AI_SERVICE_TIMEOUT_MS || process.env.AI_SERVICE_TIMEOUT_MS || 15 * 60 * 1000);
   }
 
   async transformContent(request: TransformRequest): Promise<TransformResponse> {
@@ -83,6 +83,95 @@ export class AIServiceClient {
       }
 
       throw error;
+    }
+  }
+
+  // Books API - via rotas proxy Next.js com timeout estendido
+  async generateUniversal(spec: any, options: any): Promise<any> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15 * 60 * 1000);
+    try {
+      const res = await fetch(`/api/books/universal/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ spec, options }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Falha na geração universal (${res.status})`);
+      }
+      return res.json();
+    } catch (e) {
+      clearTimeout(timeoutId);
+      throw e;
+    }
+  }
+
+  async generateOutline(spec: any, options: any): Promise<any> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15 * 60 * 1000);
+    try {
+      const res = await fetch(`/api/books/outline`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ spec, options }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Falha ao gerar outline (${res.status})`);
+      }
+      return res.json();
+    } catch (e) {
+      clearTimeout(timeoutId);
+      throw e;
+    }
+  }
+
+  async generateBookChapter(payload: { spec: any; chapter: any; context?: any; options?: any }): Promise<any> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15 * 60 * 1000);
+    try {
+      const res = await fetch(`/api/books/chapter`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Falha ao gerar capítulo (${res.status})`);
+      }
+      return res.json();
+    } catch (e) {
+      clearTimeout(timeoutId);
+      throw e;
+    }
+  }
+
+  async generateFullBook(spec: any, options: any): Promise<any> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15 * 60 * 1000);
+    try {
+      const res = await fetch(`/api/books/full`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ spec, options }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Falha ao gerar livro completo (${res.status})`);
+      }
+      return res.json();
+    } catch (e) {
+      clearTimeout(timeoutId);
+      throw e;
     }
   }
 

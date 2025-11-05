@@ -37,9 +37,8 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Melhora performance de build (sem cache experimental bugado)
+  // Melhora performance de build
   experimental: {
-    fetchCache: false,
     optimizeCss: true,
     workerThreads: false,
   },
