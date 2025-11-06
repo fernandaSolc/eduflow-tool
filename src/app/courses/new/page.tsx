@@ -179,6 +179,8 @@ export default function NewCoursePage() {
 
   const addChapterOutline = () => {
     const nextNumber = chapterFields.length + 1;
+    const newChapterIndex = chapterFields.length; // Índice do novo capítulo que será adicionado
+
     appendChapter({
       number: nextNumber,
       title: '',
@@ -186,6 +188,19 @@ export default function NewCoursePage() {
       wordCount: 1000,
       order: nextNumber, // Campo order é obrigatório para o AI Service
     });
+
+    // Scroll suave para o novo capítulo após um pequeno delay para garantir renderização
+    setTimeout(() => {
+      const chapterElement = document.querySelector(`[data-chapter-index="${newChapterIndex}"]`);
+      if (chapterElement) {
+        chapterElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        // Foca no campo de título do novo capítulo
+        const titleInput = chapterElement.querySelector('input[placeholder*="Introdução"]') as HTMLInputElement;
+        if (titleInput) {
+          setTimeout(() => titleInput.focus(), 300);
+        }
+      }
+    }, 150);
   };
 
   const addBibliographyItem = () => {
@@ -306,15 +321,9 @@ export default function NewCoursePage() {
 
               {/* SEÇÃO 2: Estrutura dos Capítulos (Ementa) */}
               <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <BookMarked className="h-5 w-5 text-primary" />
-                    <h3 className="text-lg font-semibold">Estrutura dos Capítulos (Ementa) *</h3>
-                  </div>
-                  <Button type="button" onClick={addChapterOutline} variant="outline" size="sm">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Adicionar Capítulo
-                  </Button>
+                <div className="flex items-center gap-2">
+                  <BookMarked className="h-5 w-5 text-primary" />
+                  <h3 className="text-lg font-semibold">Estrutura dos Capítulos (Ementa) *</h3>
                 </div>
 
                 <p className="text-sm text-muted-foreground">
@@ -333,7 +342,7 @@ export default function NewCoursePage() {
                 ) : (
                   <div className="space-y-4">
                     {chapterFields.map((field, index) => (
-                      <Card key={field.id} className="border-l-4 border-l-primary">
+                      <Card key={field.id} className="border-l-4 border-l-primary" data-chapter-index={index}>
                         <CardHeader className="pb-3">
                           <div className="flex justify-between items-start">
                             <CardTitle className="text-base flex items-center gap-2">
@@ -427,6 +436,14 @@ export default function NewCoursePage() {
                         </CardContent>
                       </Card>
                     ))}
+
+                    {/* Botão de adicionar capítulo na parte inferior */}
+                    <div className="flex justify-center pt-4 border-t">
+                      <Button type="button" onClick={addChapterOutline} variant="outline" size="lg" className="w-full md:w-auto">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Adicionar Novo Capítulo
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
