@@ -3,7 +3,7 @@ import { API_CONFIG } from '@/lib/api-config';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 900; // 15 minutos
+export const maxDuration = 900;
 
 async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number) {
     const controller = new AbortController();

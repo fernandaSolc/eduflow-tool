@@ -97,18 +97,27 @@ export interface GenerateSubchapterRequest {
 export class AIService {
   private baseURL: string;
   private apiKey: string;
+  private timeout: number;
 
   constructor() {
     this.baseURL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'https://aiservice.eduflow.pro';
     // ✅ CORRETO: Usar NEXT_PUBLIC_AI_SERVICE_API_KEY para estar disponível no cliente
     this.apiKey = process.env.NEXT_PUBLIC_AI_SERVICE_API_KEY || process.env.AI_SERVICE_API_KEY || 'test-api-key-123';
+    // Timeout padrão de 20 minutos (1200000ms) para operações de geração de conteúdo
+    // Pode ser configurado via variável de ambiente
+    this.timeout = Number(
+      process.env.NEXT_PUBLIC_AI_SERVICE_TIMEOUT_MS ||
+      process.env.AI_SERVICE_TIMEOUT_MS ||
+      20 * 60 * 1000 // 20 minutos
+    );
   }
 
   private async makeRequest<T>(
     endpoint: string,
     method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
     data?: any,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    customTimeout?: number
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
     const headers: HeadersInit = {
@@ -116,10 +125,16 @@ export class AIService {
       'x-api-key': this.apiKey,
     };
 
+    // Usa timeout customizado se fornecido, senão usa o padrão da classe
+    const timeoutMs = customTimeout || this.timeout;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
     const config: RequestInit = {
       ...options,
       method,
       headers,
+      signal: controller.signal,
     };
 
     if (data && method !== 'GET') {
@@ -166,44 +181,60 @@ export class AIService {
       }
     }
 
-    const response = await fetch(url, config);
+    try {
+      const response = await fetch(url, config);
 
-    if (!response.ok) {
-      const errorBody = await response.text();
-      console.error(`Erro do AI Service: ${response.status} ${response.statusText}`, errorBody);
+      // Limpa o timeout se a requisição completou
+      clearTimeout(timeoutId);
 
-      // Tratamento específico de erros conforme guia
-      let errorMessage = `Erro do AI Service: ${response.status} ${response.statusText}`;
+      if (!response.ok) {
+        const errorBody = await response.text();
+        console.error(`Erro do AI Service: ${response.status} ${response.statusText}`, errorBody);
 
-      if (response.status === 401) {
-        errorMessage = 'API key inválida. Verifique NEXT_PUBLIC_AI_SERVICE_API_KEY.';
-      } else if (response.status === 404) {
-        errorMessage = 'Recurso não encontrado. Verifique se o ID existe.';
-      } else if (response.status === 503) {
-        errorMessage = 'Serviço indisponível. Tente novamente em alguns segundos.';
-      } else if (response.status === 400) {
-        // Erro de validação - mostrar detalhes
-        try {
-          const errorData = JSON.parse(errorBody);
-          const messages = Array.isArray(errorData.message)
-            ? errorData.message.join(', ')
-            : errorData.message || errorBody;
-          errorMessage = `Dados inválidos: ${messages}`;
-        } catch {
-          errorMessage = `Dados inválidos: ${errorBody}`;
+        // Tratamento específico de erros conforme guia
+        let errorMessage = `Erro do AI Service: ${response.status} ${response.statusText}`;
+
+        if (response.status === 401) {
+          errorMessage = 'API key inválida. Verifique NEXT_PUBLIC_AI_SERVICE_API_KEY.';
+        } else if (response.status === 404) {
+          errorMessage = 'Recurso não encontrado. Verifique se o ID existe.';
+        } else if (response.status === 503) {
+          errorMessage = 'Serviço indisponível. Tente novamente em alguns segundos.';
+        } else if (response.status === 400) {
+          // Erro de validação - mostrar detalhes
+          try {
+            const errorData = JSON.parse(errorBody);
+            const messages = Array.isArray(errorData.message)
+              ? errorData.message.join(', ')
+              : errorData.message || errorBody;
+            errorMessage = `Dados inválidos: ${messages}`;
+          } catch {
+            errorMessage = `Dados inválidos: ${errorBody}`;
+          }
+        } else {
+          errorMessage = `${errorMessage}. ${errorBody}`;
         }
-      } else {
-        errorMessage = `${errorMessage}. ${errorBody}`;
+
+        throw new Error(errorMessage);
       }
 
-      throw new Error(errorMessage);
-    }
+      const text = await response.text();
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        return text as any;
+      }
+    } catch (error: any) {
+      // Limpa o timeout em caso de erro
+      clearTimeout(timeoutId);
 
-    const text = await response.text();
-    try {
-      return JSON.parse(text);
-    } catch (e) {
-      return text as any;
+      // Verifica se foi timeout
+      if (error?.name === 'AbortError' || error?.message?.includes('aborted')) {
+        throw new Error(`Timeout: A requisição demorou mais de ${Math.round(timeoutMs / 1000 / 60)} minutos para responder. Tente novamente.`);
+      }
+
+      // Re-lança outros erros
+      throw error;
     }
   }
 
@@ -221,10 +252,13 @@ export class AIService {
   }
 
   async createChapter(request: CreateChapterRequest): Promise<Chapter> {
+    // Timeout estendido de 20 minutos para criação de capítulo (geração de conteúdo)
     return this.makeRequest<Chapter>(
       API_CONFIG.AI_SERVICE.ENDPOINTS.CREATE_CHAPTER,
       'POST',
-      request
+      request,
+      {},
+      20 * 60 * 1000 // 20 minutos
     );
   }
 
@@ -258,10 +292,13 @@ export class AIService {
 
   // Gera um subcapítulo incremental
   async generateSubchapter(request: GenerateSubchapterRequest): Promise<Chapter> {
+    // Timeout estendido de 20 minutos para geração de subcapítulo (geração de conteúdo)
     return this.makeRequest<Chapter>(
       '/v1/incremental/generate-subchapter',
       'POST',
-      request
+      request,
+      {},
+      20 * 60 * 1000 // 20 minutos
     );
   }
 }
